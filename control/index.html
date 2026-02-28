@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../assets/control.css">
+</head>
+
+<body>
+<h1>🎛 Hymn Control Panel</h1>
+
+<div class="panel">
+  <input id="hymn" placeholder="Hymn Number" value="1">
+  <button onclick="load()">Load Hymn</button>
+</div>
+
+<div class="panel">
+  <button onclick="prev()">⬅ Prev</button>
+  <button onclick="next()">Next ➡</button>
+</div>
+
+<script>
+const ws = new WebSocket("ws://localhost:8765");
+
+function load(){
+  const h = document.getElementById("hymn").value;
+  ws.send(JSON.stringify({cmd:"load", hymn:h}));
+}
+
+function next(){
+  ws.send(JSON.stringify({cmd:"next"}));
+}
+
+function prev(){
+  ws.send(JSON.stringify({cmd:"prev"}));
+}
+</script>
+</body>
+</html>
