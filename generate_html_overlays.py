@@ -1,34 +1,16 @@
 import os
 
 # ===== PATHS =====
-IMG_DIR = r"D:\livestreamEKC\sdaFamily\LowerThirdAssets\lowerthird"
+IMG_DIR = r"D:\livestreamEKC\web\assets\images"
 WEB_DIR = r"D:\livestreamEKC\web"
 OVERLAYS_DIR = os.path.join(WEB_DIR, "overlays")
-ASSETS_DIR = os.path.join(WEB_DIR, "assets", "images")
 
-# ===== CREATE DIRS =====
 os.makedirs(OVERLAYS_DIR, exist_ok=True)
-os.makedirs(ASSETS_DIR, exist_ok=True)
 
 print("======================================")
 print("   GENERATING HTML OVERLAYS FOR OBS")
 print("======================================")
 
-# ===== COPY IMAGES TO WEB ASSETS =====
-print("\n[+] Copying images to web assets folder...")
-
-for img in os.listdir(IMG_DIR):
-    if img.lower().endswith(".png"):
-        src = os.path.join(IMG_DIR, img)
-        dst = os.path.join(ASSETS_DIR, img)
-        if not os.path.exists(dst):
-            with open(src, "rb") as fsrc:
-                with open(dst, "wb") as fdst:
-                    fdst.write(fsrc.read())
-
-print("[✓] Images copied")
-
-# ===== HTML TEMPLATE =====
 template = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,10 +56,9 @@ img {{
 </html>
 """
 
-# ===== GENERATE HTML FILES =====
 count = 0
 
-for img in sorted(os.listdir(ASSETS_DIR)):
+for img in sorted(os.listdir(IMG_DIR)):
     if not img.lower().endswith(".png"):
         continue
 
