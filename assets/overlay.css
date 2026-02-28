@@ -1,0 +1,35 @@
+body {
+  margin: 0;
+  background: transparent;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+#lowerthird {
+  position: absolute;
+  bottom: 80px;
+  width: 100%;
+  text-align: center;
+}
+
+#text {
+  display: inline-block;
+  max-width: 85%;
+  font-size: 46px;
+  font-weight: 600;
+  color: white;
+  padding: 20px 40px;
+  background: rgba(0,0,0,0.55);
+  border-radius: 12px;
+  opacity: 0;
+  transform: translateY(40px);
+}
+
+.animate {
+  animation: pop 0.8s ease forwards;
+}
+
+@keyframes pop {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
