@@ -1,7 +1,7 @@
 conversion_env/
 env/
-agents/
-agent/
+.agents/
+.agent/
 AGENTS.md
 node_modules/
 dist/
