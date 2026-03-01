@@ -107,6 +107,19 @@
         </div>
         <div class="style-grid">
           <label class="field">
+            <span>Speaker template</span>
+            <select id="speaker-template-select">
+              <option value="">Custom</option>
+              <option value="Sabbath School">Sabbath School</option>
+              <option value="Divine Service">Divine Service</option>
+              <option value="Opening Hymn">Opening Hymn</option>
+              <option value="Closing Hymn">Closing Hymn</option>
+              <option value="Scripture Reading">Scripture Reading</option>
+              <option value="Children's Story">Children's Story</option>
+              <option value="Special Music">Special Music</option>
+            </select>
+          </label>
+          <label class="field">
             <span>Font size</span>
             <select id="font-size-select">
               <option value="sm">Small</option>
@@ -134,6 +147,7 @@
           <label class="field">
             <span>Gradient</span>
             <select id="gradient-select">
+              <option value="none">None</option>
               <option value="dark" selected>Dark</option>
               <option value="warm">Warm</option>
               <option value="clean">Clean</option>
@@ -149,16 +163,7 @@
           </label>
           <label class="field full">
             <span>Speaker label</span>
-            <input id="speaker-input" list="speaker-templates" placeholder="Optional label">
-            <datalist id="speaker-templates">
-              <option value="Sabbath School"></option>
-              <option value="Divine Service"></option>
-              <option value="Opening Hymn"></option>
-              <option value="Closing Hymn"></option>
-              <option value="Scripture Reading"></option>
-              <option value="Children's Story"></option>
-              <option value="Special Music"></option>
-            </datalist>
+            <input id="speaker-input" placeholder="Optional label">
           </label>
         </div>
         <div class="preset-row">

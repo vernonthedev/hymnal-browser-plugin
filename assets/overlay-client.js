@@ -37,6 +37,7 @@
       xl: "74px",
     };
     const gradientMap = {
+      none: null,
       dark: [
         [6, 10, 20],
         [28, 39, 66],
@@ -51,13 +52,18 @@
       ],
     };
     const opacity = Number(style.backgroundOpacity ?? 0.55);
-    const [startColor, endColor] = gradientMap[style.backgroundGradient] || gradientMap.dark;
+    const gradient = gradientMap[style.backgroundGradient] ?? gradientMap.dark;
     root.style.setProperty("--overlay-font-size", fontSizeMap[style.fontSizePreset] || "48px");
     root.style.setProperty("--overlay-align", style.alignment || (profile === "lyrics" ? "left" : "center"));
     root.style.setProperty("--overlay-safe-margin", `${Number(style.safeMargin || 80)}px`);
-    root.style.setProperty("--overlay-bg-opacity", String(opacity));
-    root.style.setProperty("--overlay-gradient-start", `rgba(${startColor[0]}, ${startColor[1]}, ${startColor[2]}, ${opacity})`);
-    root.style.setProperty("--overlay-gradient-end", `rgba(${endColor[0]}, ${endColor[1]}, ${endColor[2]}, ${opacity})`);
+    if (gradient === null) {
+      cardEl.style.background = "transparent";
+      cardEl.style.boxShadow = "none";
+    } else {
+      const [startColor, endColor] = gradient;
+      cardEl.style.background = `linear-gradient(135deg, rgba(${startColor[0]}, ${startColor[1]}, ${startColor[2]}, ${opacity}), rgba(${endColor[0]}, ${endColor[1]}, ${endColor[2]}, ${opacity}))`;
+      cardEl.style.boxShadow = "";
+    }
     document.body.dataset.animation = style.animation || "pop";
     speakerEl.textContent = style.speakerLabel || "";
     speakerEl.classList.toggle("visible", Boolean(style.speakerLabel));
