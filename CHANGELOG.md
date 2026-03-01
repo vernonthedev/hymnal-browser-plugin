@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v1.4.0...v1.5.0) (2026-03-01)
+
+
+### Features
+
+* **bug-fix:** Fixed the portable installer overwriting on windows build & updated application meta data config to stop blockmaps file generations ([ee79b03](https://github.com/vernonthedev/hymnal-browser-plugin/commit/ee79b0399dd27ffc8b115021217559bcc0af6f1f))
+
 # [1.4.0](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v1.3.1...v1.4.0) (2026-03-01)
 
 
