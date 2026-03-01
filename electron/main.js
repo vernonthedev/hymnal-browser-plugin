@@ -15,7 +15,6 @@ let backendProcess = null;
 let runtimeInfo = null;
 let restartAttempt = 0;
 let shuttingDown = false;
-let healthTimer = null;
 let backendExitedUnexpectedly = false;
 let restartTimer = null;
 let fatalBackendError = null;
@@ -364,29 +363,6 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, "renderer", "index.html"));
 }
 
-function startStatusPolling() {
-  clearInterval(healthTimer);
-  healthTimer = setInterval(async () => {
-    if (!runtimeInfo) {
-      return;
-    }
-    try {
-      const response = await fetch(`http://127.0.0.1:${runtimeInfo.httpPort}/status`);
-      const status = await response.json();
-      sendToRenderer("backend-event", {
-        type: "status",
-        status,
-      });
-    } catch (error) {
-      sendToRenderer("backend-event", {
-        type: "log",
-        message: error.message,
-        level: "error",
-      });
-    }
-  }, 1500);
-}
-
 ipcMain.handle("runtime:get", async () => runtimeInfo);
 ipcMain.handle("clipboard:copy", async (_event, text) => {
   clipboard.writeText(text);
@@ -405,7 +381,6 @@ ipcMain.handle("app:getVersion", async () => app.getVersion());
 app.whenReady().then(async () => {
   createWindow();
   await startBackend();
-  startStatusPolling();
 });
 
 app.on("before-quit", async (event) => {
@@ -414,7 +389,6 @@ app.on("before-quit", async (event) => {
   }
   event.preventDefault();
   shuttingDown = true;
-  clearInterval(healthTimer);
   clearTimeout(restartTimer);
   await stopBackend();
   app.exit(0);
