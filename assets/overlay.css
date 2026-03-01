@@ -3,7 +3,8 @@
   --overlay-align: center;
   --overlay-safe-margin: 80px;
   --overlay-bg-opacity: 0.55;
-  --overlay-gradient: linear-gradient(135deg, rgb(6, 10, 20), rgb(28, 39, 66));
+  --overlay-gradient-start: rgba(6, 10, 20, 0.55);
+  --overlay-gradient-end: rgba(28, 39, 66, 0.55);
   --overlay-max-width: 84vw;
   --overlay-y: 0px;
   --overlay-x: 0px;
@@ -67,8 +68,7 @@ body[data-profile="lyrics"] .overlay-shell {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: var(--overlay-gradient);
-  opacity: var(--overlay-bg-opacity);
+  background-image: linear-gradient(135deg, var(--overlay-gradient-start), var(--overlay-gradient-end));
   z-index: 0;
 }
 

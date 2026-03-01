@@ -37,15 +37,27 @@
       xl: "74px",
     };
     const gradientMap = {
-      dark: "linear-gradient(135deg, rgb(6, 10, 20), rgb(28, 39, 66))",
-      warm: "linear-gradient(135deg, rgb(82, 28, 18), rgb(145, 64, 31))",
-      clean: "linear-gradient(135deg, rgb(2, 6, 23), rgb(30, 41, 59))",
+      dark: [
+        [6, 10, 20],
+        [28, 39, 66],
+      ],
+      warm: [
+        [82, 28, 18],
+        [145, 64, 31],
+      ],
+      clean: [
+        [2, 6, 23],
+        [30, 41, 59],
+      ],
     };
+    const opacity = Number(style.backgroundOpacity ?? 0.55);
+    const [startColor, endColor] = gradientMap[style.backgroundGradient] || gradientMap.dark;
     root.style.setProperty("--overlay-font-size", fontSizeMap[style.fontSizePreset] || "48px");
     root.style.setProperty("--overlay-align", style.alignment || (profile === "lyrics" ? "left" : "center"));
     root.style.setProperty("--overlay-safe-margin", `${Number(style.safeMargin || 80)}px`);
-    root.style.setProperty("--overlay-bg-opacity", String(style.backgroundOpacity ?? 0.55));
-    root.style.setProperty("--overlay-gradient", gradientMap[style.backgroundGradient] || gradientMap.dark);
+    root.style.setProperty("--overlay-bg-opacity", String(opacity));
+    root.style.setProperty("--overlay-gradient-start", `rgba(${startColor[0]}, ${startColor[1]}, ${startColor[2]}, ${opacity})`);
+    root.style.setProperty("--overlay-gradient-end", `rgba(${endColor[0]}, ${endColor[1]}, ${endColor[2]}, ${opacity})`);
     document.body.dataset.animation = style.animation || "pop";
     speakerEl.textContent = style.speakerLabel || "";
     speakerEl.classList.toggle("visible", Boolean(style.speakerLabel));
