@@ -133,9 +133,6 @@ function syncStyleForm(style = {}) {
   if (document.activeElement !== elements.gradient) {
     elements.gradient.value = style.backgroundGradient || "dark";
   }
-  if (document.activeElement !== elements.backgroundVisibility) {
-    elements.backgroundVisibility.value = style.showBackground === false ? "off" : "on";
-  }
   if (document.activeElement !== elements.safeMargin) {
     elements.safeMargin.value = String(style.safeMargin ?? 80);
   }
@@ -164,6 +161,9 @@ function renderStatus() {
   elements.currentLinePreview.textContent = status.text || "(No text)";
   elements.prevLinePreview.textContent = status.previous_text || "-";
   elements.nextLinePreview.textContent = status.next_text || "-";
+  if (document.activeElement !== elements.backgroundVisibility) {
+    elements.backgroundVisibility.value = status.show_background === false ? "off" : "on";
+  }
   syncStyleForm(status.style || {});
 
   if (status.presets) {
@@ -249,7 +249,6 @@ function buildStylePayload() {
     fontSizePreset: elements.fontSize.value,
     alignment: elements.alignment.value,
     animation: elements.animation.value,
-    showBackground: elements.backgroundVisibility.value !== "off",
     backgroundGradient: elements.gradient.value,
     safeMargin: Number(elements.safeMargin.value),
     backgroundOpacity: Number(elements.opacity.value),
@@ -298,12 +297,15 @@ function bindEvents() {
     queueStyleUpdate();
   });
 
+  elements.backgroundVisibility.addEventListener("change", () => {
+    sendCommand({ cmd: "set_background", enabled: elements.backgroundVisibility.value !== "off" });
+  });
+
   [
     elements.fontSize,
     elements.alignment,
     elements.animation,
     elements.gradient,
-    elements.backgroundVisibility,
     elements.safeMargin,
   ].forEach((input) => {
     input.addEventListener("change", () => {

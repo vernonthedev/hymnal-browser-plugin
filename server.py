@@ -22,7 +22,6 @@ DEFAULT_STYLE = {
     "alignment": "center",
     "safeMargin": 80,
     "animation": "pop",
-    "showBackground": True,
     "backgroundGradient": "dark",
     "backgroundOpacity": 0.55,
     "speakerLabel": "",
@@ -34,7 +33,6 @@ DEFAULT_PRESETS = {
         "alignment": "center",
         "safeMargin": 120,
         "animation": "fade",
-        "showBackground": True,
         "backgroundGradient": "warm",
         "backgroundOpacity": 0.35,
         "speakerLabel": "",
@@ -67,6 +65,7 @@ class AppState:
         self.lines = self._read_hymn_lines("1")
         self.line_index = 0
         self.visible = True
+        self.show_background = True
         self.style = self.presets.get("Default", DEFAULT_STYLE.copy()).copy()
         self.token = token
         self.http_port = 0
@@ -146,6 +145,7 @@ class AppState:
             "totalLines": len(self.lines),
             "text": self.current_text(),
             "visible": self.visible,
+            "showBackground": self.show_background,
             "style": self.style,
             "connectedClients": self.connected_clients,
             "controlClients": self.control_clients,
@@ -165,6 +165,7 @@ class AppState:
                 "previous_text": self.lines[self.line_index - 1] if self.line_index > 0 and self.lines else "",
                 "next_text": self.lines[self.line_index + 1] if self.line_index + 1 < len(self.lines) else "",
                 "visible": self.visible,
+                "show_background": self.show_background,
                 "connected_clients": self.connected_clients,
                 "control_clients": self.control_clients,
                 "style": self.style,
@@ -228,11 +229,17 @@ class AppState:
                 self.last_error = ""
                 return True, "", self.overlay_payload("retrigger")
 
+            if cmd == "set_background":
+                self.show_background = bool(command.get("enabled", True))
+                self.last_error = ""
+                return True, "", self.overlay_payload("background")
+
             if cmd == "update_style":
                 style = command.get("style", {})
                 if not isinstance(style, dict):
                     self.last_error = "Style payload must be an object."
                     return False, self.last_error, None
+                style = {key: value for key, value in style.items() if key != "showBackground"}
                 self.style = {**self.style, **style}
                 self.last_error = ""
                 return True, "", self.overlay_payload("style")

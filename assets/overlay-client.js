@@ -55,7 +55,7 @@
     root.style.setProperty("--overlay-font-size", fontSizeMap[style.fontSizePreset] || "48px");
     root.style.setProperty("--overlay-align", style.alignment || (profile === "lyrics" ? "left" : "center"));
     root.style.setProperty("--overlay-safe-margin", `${Number(style.safeMargin || 80)}px`);
-    if (style.showBackground === false) {
+    if (currentState.showBackground === false) {
       cardEl.classList.add("backgroundless");
       cardEl.style.background = "transparent";
       cardEl.style.boxShadow = "none";
@@ -84,6 +84,8 @@
     currentState = {
       ...currentState,
       ...nextState,
+      showBackground:
+        nextState.showBackground !== undefined ? nextState.showBackground : currentState.showBackground,
       style: {
         ...currentState.style,
         ...(nextState.style || {}),
