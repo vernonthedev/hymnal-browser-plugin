@@ -59,11 +59,15 @@
       cardEl.classList.add("backgroundless");
       cardEl.style.background = "transparent";
       cardEl.style.boxShadow = "none";
+      cardEl.style.padding = "0";
+      cardEl.style.borderRadius = "0";
     } else {
       cardEl.classList.remove("backgroundless");
       const [startColor, endColor] = gradient;
       cardEl.style.background = `linear-gradient(135deg, rgba(${startColor[0]}, ${startColor[1]}, ${startColor[2]}, ${opacity}), rgba(${endColor[0]}, ${endColor[1]}, ${endColor[2]}, ${opacity}))`;
       cardEl.style.boxShadow = "";
+      cardEl.style.padding = "";
+      cardEl.style.borderRadius = "";
     }
     document.body.dataset.animation = style.animation || "pop";
     speakerEl.textContent = style.speakerLabel || "";

@@ -64,6 +64,8 @@ body[data-profile="lyrics"] .overlay-shell {
 .overlay-card.backgroundless {
   background: transparent !important;
   box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
 }
 
 .overlay-card.visible {
