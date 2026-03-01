@@ -21,11 +21,11 @@ py -3.12 -m venv env # Ensure u have python3.12 & above
 > **Check installed Python versions**
 
 ```python
+# Run this command to check installed python versions
 py -0
 
-# Result below
+# Ensure this python version is installed
  -3.12-64 *
-# Other python versions
 ```
 
 Incase those versions above are not found then please install `python3.12` using this link [Python3.12](https://www.python.org/downloads/release/python-3122/)

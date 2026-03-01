@@ -1,6 +1,6 @@
 # Contributing to SDA Hymnal Lowerthirds Plugin
 
-First off, thank you for considering contributing to this project! It's people like you that make this a great tool for the community. We welcome all contributions, whether it's fixing bugs, adding features, or improving documentation.
+First off, thank you for considering contributing to this project! It's people like you that make this a great tool for the community. I welcome all contributions, whether it's fixing bugs, adding features, or improving documentation.
 
 ## How Can I Contribute?
 
@@ -43,7 +43,7 @@ Quick start:
 
 ## Commit Message Guidelines
 
-To keep the history clean and manageable, I follow the **[Conventional Commits](https://www.conventionalcommits.org/)** specification.
+To keep the history clean and manageable, I follow the **[Conventional Commits](https://www.conventionalcommits.org/)** specification. This allows for automated versioning and the generation of a `CHANGELOG.md` file on every release.
 
 ### Format
 
@@ -74,4 +74,4 @@ To keep the history clean and manageable, I follow the **[Conventional Commits](
 ---
 
 Thank you for your contributions! 💖
-Made with love by the community.
+Made with love 💖 by @[vernonthedev](https://github.com/vernonthedev)
