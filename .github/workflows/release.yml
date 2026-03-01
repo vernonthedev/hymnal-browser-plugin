@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    name: Release
+    name: Auto Release
     runs-on: ubuntu-latest
     permissions:
       contents: write
