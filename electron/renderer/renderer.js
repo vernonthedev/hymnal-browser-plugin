@@ -34,10 +34,12 @@ const elements = {
   openHymnsBtn: document.getElementById("open-hymns-btn"),
   logOutput: document.getElementById("log-output"),
   toastRegion: document.getElementById("toast-region"),
+  speakerTemplate: document.getElementById("speaker-template-select"),
   fontSize: document.getElementById("font-size-select"),
   alignment: document.getElementById("alignment-select"),
   animation: document.getElementById("animation-select"),
   gradient: document.getElementById("gradient-select"),
+  backgroundVisibility: document.getElementById("background-visibility-select"),
   safeMargin: document.getElementById("safe-margin-input"),
   opacity: document.getElementById("opacity-input"),
   speaker: document.getElementById("speaker-input"),
@@ -131,6 +133,9 @@ function syncStyleForm(style = {}) {
   if (document.activeElement !== elements.gradient) {
     elements.gradient.value = style.backgroundGradient || "dark";
   }
+  if (document.activeElement !== elements.backgroundVisibility) {
+    elements.backgroundVisibility.value = style.showBackground === false ? "off" : "on";
+  }
   if (document.activeElement !== elements.safeMargin) {
     elements.safeMargin.value = String(style.safeMargin ?? 80);
   }
@@ -139,6 +144,9 @@ function syncStyleForm(style = {}) {
   }
   if (document.activeElement !== elements.speaker) {
     elements.speaker.value = style.speakerLabel || "";
+  }
+  if (document.activeElement !== elements.speakerTemplate) {
+    elements.speakerTemplate.value = style.speakerLabel || "";
   }
 }
 
@@ -241,6 +249,7 @@ function buildStylePayload() {
     fontSizePreset: elements.fontSize.value,
     alignment: elements.alignment.value,
     animation: elements.animation.value,
+    showBackground: elements.backgroundVisibility.value !== "off",
     backgroundGradient: elements.gradient.value,
     safeMargin: Number(elements.safeMargin.value),
     backgroundOpacity: Number(elements.opacity.value),
@@ -284,11 +293,17 @@ function bindEvents() {
     }
   });
 
+  elements.speakerTemplate.addEventListener("change", () => {
+    elements.speaker.value = elements.speakerTemplate.value;
+    queueStyleUpdate();
+  });
+
   [
     elements.fontSize,
     elements.alignment,
     elements.animation,
     elements.gradient,
+    elements.backgroundVisibility,
     elements.safeMargin,
   ].forEach((input) => {
     input.addEventListener("change", () => {

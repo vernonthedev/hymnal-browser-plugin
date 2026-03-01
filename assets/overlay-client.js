@@ -37,7 +37,6 @@
       xl: "74px",
     };
     const gradientMap = {
-      none: null,
       dark: [
         [6, 10, 20],
         [28, 39, 66],
@@ -56,7 +55,7 @@
     root.style.setProperty("--overlay-font-size", fontSizeMap[style.fontSizePreset] || "48px");
     root.style.setProperty("--overlay-align", style.alignment || (profile === "lyrics" ? "left" : "center"));
     root.style.setProperty("--overlay-safe-margin", `${Number(style.safeMargin || 80)}px`);
-    if (gradient === null) {
+    if (style.showBackground === false) {
       cardEl.style.background = "transparent";
       cardEl.style.boxShadow = "none";
     } else {

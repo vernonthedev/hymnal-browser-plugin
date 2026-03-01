@@ -22,6 +22,7 @@ DEFAULT_STYLE = {
     "alignment": "center",
     "safeMargin": 80,
     "animation": "pop",
+    "showBackground": True,
     "backgroundGradient": "dark",
     "backgroundOpacity": 0.55,
     "speakerLabel": "",
@@ -33,6 +34,7 @@ DEFAULT_PRESETS = {
         "alignment": "center",
         "safeMargin": 120,
         "animation": "fade",
+        "showBackground": True,
         "backgroundGradient": "warm",
         "backgroundOpacity": 0.35,
         "speakerLabel": "",
@@ -287,7 +289,10 @@ class AppRequestHandler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=directory, **kwargs)
 
     def log_message(self, format: str, *args: Any) -> None:
-        sys.stdout.write(json.dumps({"event": "http_log", "message": format % args}) + "\n")
+        message = format % args
+        if '"GET /status HTTP/1.1"' in message or '"GET /health HTTP/1.1"' in message:
+            return
+        sys.stdout.write(json.dumps({"event": "http_log", "message": message}) + "\n")
         sys.stdout.flush()
 
     def end_headers(self) -> None:
