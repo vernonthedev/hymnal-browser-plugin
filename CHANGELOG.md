@@ -1,3 +1,11 @@
+# [1.3.0](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v1.2.0...v1.3.0) (2026-03-01)
+
+
+### Features
+
+* **production:** setup application bundlings for all OS ([9ed2651](https://github.com/vernonthedev/hymnal-browser-plugin/commit/9ed265154dbbdfc1d6f115ebe4991dbadfdbd723))
+* updated application build & icons ([c1eeee7](https://github.com/vernonthedev/hymnal-browser-plugin/commit/c1eeee7511539b89ebfeea5e909e0260070b1059))
+
 # [1.2.0](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v1.1.0...v1.2.0) (2026-03-01)
 
 
