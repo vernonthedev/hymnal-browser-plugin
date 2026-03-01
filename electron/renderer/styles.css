@@ -1007,6 +1007,14 @@ input[type="range"] {
   line-height: 1.45;
 }
 
+.modal-bullets {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  display: grid;
+  gap: 6px;
+}
+
 .modal-card code {
   display: block;
   padding: 10px 11px;

@@ -9,6 +9,7 @@ const DEFAULT_HTTP_PORT = 9999;
 const DEFAULT_WS_PORT = 8765;
 const HEALTH_TIMEOUT_MS = 15000;
 const RESTART_BACKOFF_MS = [1000, 3000, 5000, 10000];
+const CHANGELOG_FILE = "CHANGELOG.md";
 
 let mainWindow = null;
 let backendProcess = null;
@@ -22,6 +23,71 @@ let fatalBackendError = null;
 function sendToRenderer(channel, payload) {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send(channel, payload);
+  }
+}
+
+function getRepoReadablePath(relativePath) {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, "app.asar.unpacked", relativePath);
+  }
+  return path.join(app.getAppPath(), relativePath);
+}
+
+function getLatestReleaseInfo() {
+  const fallbackVersion = app.getVersion();
+  const changelogPath = getRepoReadablePath(CHANGELOG_FILE);
+
+  if (!fs.existsSync(changelogPath)) {
+    return {
+      version: fallbackVersion,
+      releasedOn: null,
+      summary: [],
+      source: "app",
+    };
+  }
+
+  try {
+    const changelog = fs.readFileSync(changelogPath, "utf8");
+    const lines = changelog.split(/\r?\n/);
+    const headerIndex = lines.findIndex((line) => /^#\s*\[?\d+\.\d+\.\d+\]?/.test(line));
+
+    if (headerIndex === -1) {
+      return {
+        version: fallbackVersion,
+        releasedOn: null,
+        summary: [],
+        source: "app",
+      };
+    }
+
+    const header = lines[headerIndex];
+    const versionMatch = header.match(/(\d+\.\d+\.\d+)/);
+    const dateMatch = header.match(/\((\d{4}-\d{2}-\d{2})\)/);
+    const nextHeaderIndex = lines.findIndex(
+      (line, index) => index > headerIndex && /^#\s*\[?\d+\.\d+\.\d+\]?/.test(line),
+    );
+    const sectionLines = lines.slice(
+      headerIndex + 1,
+      nextHeaderIndex === -1 ? lines.length : nextHeaderIndex,
+    );
+    const summary = sectionLines
+      .filter((line) => line.trim().startsWith("* "))
+      .slice(0, 6)
+      .map((line) => line.replace(/^\*\s*/, "").replace(/\s*\(\[?.*$/, "").trim());
+
+    return {
+      version: versionMatch ? versionMatch[1] : fallbackVersion,
+      releasedOn: dateMatch ? dateMatch[1] : null,
+      summary,
+      source: "changelog",
+    };
+  } catch {
+    return {
+      version: fallbackVersion,
+      releasedOn: null,
+      summary: [],
+      source: "app",
+    };
   }
 }
 
@@ -384,6 +450,7 @@ ipcMain.handle("shell:openPath", async (_event, target) => {
   return true;
 });
 ipcMain.handle("app:getVersion", async () => app.getVersion());
+ipcMain.handle("app:getReleaseInfo", async () => getLatestReleaseInfo());
 ipcMain.handle("window:minimize", async () => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.minimize();

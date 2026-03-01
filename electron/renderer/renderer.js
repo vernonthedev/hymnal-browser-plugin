@@ -8,6 +8,7 @@ const state = {
   hymnIndex: [],
   presets: {},
   appVersion: "0.0.0",
+  releaseInfo: null,
   reconnectTimer: null,
   styleUpdateTimer: null,
   logLines: [],
@@ -165,6 +166,10 @@ function buildHelpModal() {
 }
 
 function buildAboutModal() {
+  const releaseVersion = state.releaseInfo?.version || "Unavailable";
+  const releaseDate = state.releaseInfo?.releasedOn || "Unavailable";
+  const releaseSummary = state.releaseInfo?.summary || [];
+
   return `
     <div class="modal-copy">
       <p>SDA Hymnal Desktop is a local broadcast console for loading hymn lyrics and sending live overlay updates to browser-based outputs.</p>
@@ -175,8 +180,12 @@ function buildAboutModal() {
           <code>https://vernon.skope.au</code>
         </article>
         <article class="modal-card">
-          <div class="modal-card-header"><strong>App Version</strong><span>${state.appVersion}</span></div>
-          <p>Electron renderer connected to the local Python backend.</p>
+          <div class="modal-card-header"><strong>Release Version</strong><span>${releaseVersion}</span></div>
+          <p>Latest version resolved from CHANGELOG.md.</p>
+        </article>
+        <article class="modal-card">
+          <div class="modal-card-header"><strong>Released On</strong><span>${releaseDate}</span></div>
+          <p>This value follows your semantic-release changelog updates from CI.</p>
         </article>
         <article class="modal-card">
           <div class="modal-card-header"><strong>Runtime</strong><span>${state.runtime ? "Connected" : "Waiting"}</span></div>
@@ -185,6 +194,14 @@ function buildAboutModal() {
         <article class="modal-card">
           <div class="modal-card-header"><strong>Source Code</strong><span>GitHub</span></div>
           <code>https://github.com/vernonthedev/hymnal-browser-plugin</code>
+        </article>
+        <article class="modal-card">
+          <div class="modal-card-header"><strong>Latest Changes</strong><span>${releaseSummary.length}</span></div>
+          ${
+            releaseSummary.length
+              ? `<ul class="modal-bullets">${releaseSummary.map((item) => `<li>${item}</li>`).join("")}</ul>`
+              : "<p>No changelog summary available.</p>"
+          }
         </article>
       </div>
     </div>
@@ -721,6 +738,7 @@ async function init() {
   bindEvents();
   renderFinderResults();
   state.appVersion = await window.desktopApi.getVersion();
+  state.releaseInfo = await window.desktopApi.getReleaseInfo();
   const runtime = await window.desktopApi.getRuntime();
   if (runtime) {
     state.runtime = runtime;
