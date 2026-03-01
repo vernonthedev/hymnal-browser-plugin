@@ -93,7 +93,12 @@ function closeModal() {
 }
 
 function openModal({ eyebrow, title, body }) {
-  if (!elements.modalOverlay || !elements.modalEyebrow || !elements.modalTitle || !elements.modalBody) {
+  if (
+    !elements.modalOverlay ||
+    !elements.modalEyebrow ||
+    !elements.modalTitle ||
+    !elements.modalBody
+  ) {
     return;
   }
 
@@ -148,6 +153,12 @@ function buildHelpModal() {
           <div class="modal-card-header"><strong>Theme Controls</strong><span>Live output</span></div>
           <p>Template, font size, alignment, animation, and safe margin update the live overlay style immediately.</p>
         </article>
+        <article class="modal-card">
+          <div class="modal-card-header"><strong>Support</strong><span>Links</span></div>
+          <p>Developer: vernonthedev</p>
+          <code>https://vernon.skope.au</code>
+          <code>https://github.com/vernonthedev/hymnal-browser-plugin</code>
+        </article>
       </div>
     </div>
   `;
@@ -159,12 +170,21 @@ function buildAboutModal() {
       <p>SDA Hymnal Desktop is a local broadcast console for loading hymn lyrics and sending live overlay updates to browser-based outputs.</p>
       <div class="modal-list">
         <article class="modal-card">
+          <div class="modal-card-header"><strong>Developer</strong><span>vernonthedev</span></div>
+          <p>Website</p>
+          <code>https://vernon.skope.au</code>
+        </article>
+        <article class="modal-card">
           <div class="modal-card-header"><strong>App Version</strong><span>${state.appVersion}</span></div>
           <p>Electron renderer connected to the local Python backend.</p>
         </article>
         <article class="modal-card">
           <div class="modal-card-header"><strong>Runtime</strong><span>${state.runtime ? "Connected" : "Waiting"}</span></div>
           <p>${state.runtime ? `HTTP ${state.runtime.httpPort}, WS ${state.runtime.wsPort}` : "Backend runtime details are not available yet."}</p>
+        </article>
+        <article class="modal-card">
+          <div class="modal-card-header"><strong>Source Code</strong><span>GitHub</span></div>
+          <code>https://github.com/vernonthedev/hymnal-browser-plugin</code>
         </article>
       </div>
     </div>
@@ -194,7 +214,8 @@ function createIcon(iconName) {
 
 function renderOverlayUrls() {
   if (!state.runtime) {
-    elements.overlayUrlList.innerHTML = "<p class=\"result-preview\">Waiting for runtime details...</p>";
+    elements.overlayUrlList.innerHTML =
+      '<p class="result-preview">Waiting for runtime details...</p>';
     return;
   }
 
@@ -268,7 +289,9 @@ function syncStyleForm(style = {}) {
 }
 
 function normalizeText(value) {
-  return String(value || "").trim().toLowerCase();
+  return String(value || "")
+    .trim()
+    .toLowerCase();
 }
 
 function getHymnTitle(item) {
@@ -292,7 +315,9 @@ function getMatchingHymns(query) {
     .filter((item) => {
       const number = normalizeText(item.number);
       const preview = normalizeText(item.preview);
-      return number.startsWith(normalizedQuery) || preview.includes(normalizedQuery);
+      return (
+        number.startsWith(normalizedQuery) || preview.includes(normalizedQuery)
+      );
     })
     .slice(0, MAX_FINDER_RESULTS);
 }
@@ -301,7 +326,9 @@ function getSelectedHymn() {
   const typed = normalizeText(elements.hymnInput.value);
   if (typed) {
     const exactMatch = state.hymnIndex.find(
-      (item) => normalizeText(item.number) === typed || normalizeText(item.preview) === typed,
+      (item) =>
+        normalizeText(item.number) === typed ||
+        normalizeText(item.preview) === typed,
     );
     if (exactMatch) {
       return exactMatch;
@@ -315,7 +342,8 @@ function getSelectedHymn() {
 
   if (state.status?.current_hymn) {
     return state.hymnIndex.find(
-      (item) => normalizeText(item.number) === normalizeText(state.status.current_hymn),
+      (item) =>
+        normalizeText(item.number) === normalizeText(state.status.current_hymn),
     );
   }
 
@@ -344,7 +372,10 @@ function renderFinderResults() {
   const activeNumber = getSelectedHymn()?.number;
   const query = normalizeText(elements.hymnInput.value);
   elements.finderResultsCount.textContent = `${results.length} hymn${results.length === 1 ? "" : "s"}`;
-  elements.hymnSearchPopover?.classList.toggle("is-hidden", !query || results.length === 0);
+  elements.hymnSearchPopover?.classList.toggle(
+    "is-hidden",
+    !query || results.length === 0,
+  );
   if (state.pickerDismissed) {
     elements.hymnSearchPopover?.classList.add("is-hidden");
   }
@@ -417,7 +448,9 @@ async function fetchJson(route) {
   if (!state.runtime) {
     throw new Error("Runtime is not available yet.");
   }
-  const response = await fetch(`http://127.0.0.1:${state.runtime.httpPort}${route}`);
+  const response = await fetch(
+    `http://127.0.0.1:${state.runtime.httpPort}${route}`,
+  );
   if (!response.ok) {
     throw new Error(`Request failed for ${route}`);
   }
@@ -522,13 +555,27 @@ function bindEvents() {
   elements.loadBtn.addEventListener("click", () => {
     sendCommand({ cmd: "load", hymn: elements.hymnInput.value.trim() });
   });
-  elements.prevBtn.addEventListener("click", () => sendCommand({ cmd: "prev" }));
-  elements.nextBtn.addEventListener("click", () => sendCommand({ cmd: "next" }));
-  elements.resetBtn.addEventListener("click", () => sendCommand({ cmd: "reset" }));
-  elements.blankBtn.addEventListener("click", () => sendCommand({ cmd: "blank" }));
-  elements.showBtn.addEventListener("click", () => sendCommand({ cmd: "show" }));
-  elements.retriggerBtn.addEventListener("click", () => sendCommand({ cmd: "retrigger" }));
-  elements.reloadIndexBtn.addEventListener("click", () => sendCommand({ cmd: "reload_hymns" }));
+  elements.prevBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "prev" }),
+  );
+  elements.nextBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "next" }),
+  );
+  elements.resetBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "reset" }),
+  );
+  elements.blankBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "blank" }),
+  );
+  elements.showBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "show" }),
+  );
+  elements.retriggerBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "retrigger" }),
+  );
+  elements.reloadIndexBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "reload_hymns" }),
+  );
   elements.openUrlsBtn.addEventListener("click", () => {
     openModal({
       eyebrow: "URLs",
@@ -569,13 +616,16 @@ function bindEvents() {
     queueStyleUpdate();
   });
 
-  [elements.fontSize, elements.alignment, elements.animation, elements.safeMargin].forEach(
-    (input) => {
-      input.addEventListener("change", () => {
-        queueStyleUpdate();
-      });
-    },
-  );
+  [
+    elements.fontSize,
+    elements.alignment,
+    elements.animation,
+    elements.safeMargin,
+  ].forEach((input) => {
+    input.addEventListener("change", () => {
+      queueStyleUpdate();
+    });
+  });
 
   [elements.speaker].forEach((input) => {
     input.addEventListener("input", queueStyleUpdate);
