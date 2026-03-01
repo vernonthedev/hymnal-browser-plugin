@@ -52,20 +52,27 @@ body[data-profile="lyrics"] .overlay-shell {
   gap: 10px;
   max-width: var(--overlay-max-width);
   padding: 18px 30px;
-  border-radius: 22px;
   text-align: var(--overlay-align);
-  background: linear-gradient(135deg, rgba(6, 10, 20, 0.55), rgba(28, 39, 66, 0.55));
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.42);
   opacity: 0;
   transform: translate3d(var(--overlay-x), calc(36px + var(--overlay-y)), 0);
   transition: opacity 220ms ease, transform 260ms ease;
 }
 
+.overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(6, 10, 20, 0.55), rgba(28, 39, 66, 0.55));
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.42);
+  pointer-events: none;
+}
+
 .overlay-card.backgroundless {
-  background: transparent !important;
-  box-shadow: none !important;
   padding: 0 !important;
-  border-radius: 0 !important;
+}
+
+.overlay-card.backgroundless .overlay-backdrop {
+  display: none !important;
 }
 
 .overlay-card.visible {
@@ -79,6 +86,8 @@ body[data-profile="lyrics"] .overlay-shell {
 }
 
 .speaker {
+  position: relative;
+  z-index: 1;
   display: none;
   font-size: clamp(12px, 1.1vw, 20px);
   font-weight: 700;
@@ -92,6 +101,8 @@ body[data-profile="lyrics"] .overlay-shell {
 }
 
 .text {
+  position: relative;
+  z-index: 1;
   font-size: clamp(24px, var(--overlay-font-size), 88px);
   line-height: 1.2;
   font-weight: 700;

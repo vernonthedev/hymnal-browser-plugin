@@ -1,6 +1,7 @@
 (function () {
   const textEl = document.getElementById("text");
   const cardEl = document.getElementById("overlay-card");
+  const backdropEl = document.getElementById("overlay-backdrop");
   const speakerEl = document.getElementById("speaker");
   const statusEl = document.getElementById("overlay-status");
   const profile = document.body.dataset.profile || "lowerthird";
@@ -57,17 +58,15 @@
     root.style.setProperty("--overlay-safe-margin", `${Number(style.safeMargin || 80)}px`);
     if (currentState.showBackground === false) {
       cardEl.classList.add("backgroundless");
-      cardEl.style.background = "transparent";
-      cardEl.style.boxShadow = "none";
       cardEl.style.padding = "0";
-      cardEl.style.borderRadius = "0";
+      backdropEl.style.display = "none";
     } else {
       cardEl.classList.remove("backgroundless");
       const [startColor, endColor] = gradient;
-      cardEl.style.background = `linear-gradient(135deg, rgba(${startColor[0]}, ${startColor[1]}, ${startColor[2]}, ${opacity}), rgba(${endColor[0]}, ${endColor[1]}, ${endColor[2]}, ${opacity}))`;
-      cardEl.style.boxShadow = "";
+      backdropEl.style.display = "";
+      backdropEl.style.background = `linear-gradient(135deg, rgba(${startColor[0]}, ${startColor[1]}, ${startColor[2]}, ${opacity}), rgba(${endColor[0]}, ${endColor[1]}, ${endColor[2]}, ${opacity}))`;
+      backdropEl.style.boxShadow = "0 20px 50px rgba(15, 23, 42, 0.42)";
       cardEl.style.padding = "";
-      cardEl.style.borderRadius = "";
     }
     document.body.dataset.animation = style.animation || "pop";
     speakerEl.textContent = style.speakerLabel || "";
