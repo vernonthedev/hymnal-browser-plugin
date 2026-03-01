@@ -1026,6 +1026,17 @@ input[type="range"] {
   overflow-wrap: anywhere;
 }
 
+.modal-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.modal-actions button {
+  min-width: 0;
+  height: 38px;
+  padding: 0 14px;
+}
+
 .scroll-area,
 .finder-results {
   scrollbar-width: thin;

@@ -129,6 +129,10 @@ function buildUrlsModal() {
                 <span>${overlay.path}</span>
               </div>
               <code>${overlay.url}</code>
+              <div class="modal-actions">
+                <button class="secondary-btn" type="button" data-modal-action="copy-url" data-url="${overlay.url}">Copy</button>
+                <button class="primary-btn" type="button" data-modal-action="open-url" data-url="${overlay.url}">Open</button>
+              </div>
             </article>
           `,
         )
@@ -704,6 +708,35 @@ function bindEvents() {
   elements.modalOverlay?.addEventListener("click", (event) => {
     if (event.target === elements.modalOverlay) {
       closeModal();
+    }
+  });
+
+  elements.modalBody?.addEventListener("click", async (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+
+    const actionElement = target.closest("[data-modal-action]");
+    if (!(actionElement instanceof HTMLElement)) {
+      return;
+    }
+
+    const action = actionElement.dataset.modalAction;
+    const url = actionElement.dataset.url;
+
+    if (!url) {
+      return;
+    }
+
+    if (action === "copy-url") {
+      await window.desktopApi.copyText(url);
+      showToast("Overlay URL copied.");
+      return;
+    }
+
+    if (action === "open-url") {
+      await window.desktopApi.openExternal(url);
     }
   });
 

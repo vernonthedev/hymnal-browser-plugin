@@ -8,13 +8,19 @@
   "scripts": {
     "dev": "electron .",
     "start": "electron .",
-    "build:backend": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build_backend.ps1",
+    "build:icons": "bunx --bun icon-gen -i assets/logo.png -o assets/icons",
+    "build:backend": "node scripts/build-backend.js",
     "dist": "electron-builder",
-    "dist:dir": "electron-builder --dir"
+    "dist:dir": "electron-builder --dir",
+    "dist:win": "electron-builder --win nsis",
+    "dist:mac": "electron-builder --mac dmg",
+    "dist:linux": "electron-builder --linux AppImage deb"
   },
   "build": {
     "appId": "com.sda.hymnal.desktop",
-    "productName": "SDA Hymnal Desktop",
+    "productName": "Hymn Broadcast Console",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "icon": "assets/icons",
     "files": [
       "electron/**/*",
       "assets/**/*",
@@ -38,12 +44,17 @@
       "output": "dist/electron"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "assets/icons/icon.ico"
     },
     "mac": {
-      "target": "dmg"
+      "target": "dmg",
+      "icon": "assets/icons/icon.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
     },
     "linux": {
+      "icon": "assets/icons",
       "target": [
         "AppImage",
         "deb"
@@ -52,6 +63,7 @@
   },
   "devDependencies": {
     "electron": "^36.2.1",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "icon-gen": "^3.0.1"
   }
 }

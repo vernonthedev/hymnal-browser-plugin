@@ -1,4 +1,4 @@
-# SDA Hymnal Desktop + Overlay Server
+# Hymn Broadcast Console + Overlay Server
 
 Electron now provides the operator control panel, while the Python backend remains the single source of truth for hymn state, overlay visibility, and live style settings. OBS or vMix still loads overlay pages from a localhost URL.
 
@@ -49,16 +49,45 @@ Paste the URL shown in the Electron app into an OBS or vMix browser source.
 Build the backend executable first:
 
 ```powershell
-bun build:backend
+bun run build:icons
+bun run build:backend
 ```
 
 Then package the desktop app:
 
 ```powershell
-bun dist
+bun run dist
+```
+
+Platform-specific packaging commands:
+
+```powershell
+bun run dist:win
+bun run dist:mac
+bun run dist:linux
 ```
 
 `electron-builder` is configured for Windows (`nsis`), macOS (`dmg`), and Linux (`AppImage`, `deb`).
+
+## Automated Releases
+
+Pushes to `main` run semantic-release, update `CHANGELOG.md`, create a GitHub release, generate app icons from `assets/logo.png`, and then build platform installers for:
+
+- Windows: `.exe`
+- macOS: `.dmg`
+- Linux: `.AppImage` and `.deb`
+
+Those installer files are uploaded to the GitHub release automatically.
+
+Optional code-signing and notarization secrets for CI:
+
+- `WIN_CSC_LINK`
+- `WIN_CSC_KEY_PASSWORD`
+- `CSC_LINK`
+- `CSC_KEY_PASSWORD`
+- `APPLE_ID`
+- `APPLE_APP_SPECIFIC_PASSWORD`
+- `APPLE_TEAM_ID`
 
 ## OBS or VMIX Setup
 

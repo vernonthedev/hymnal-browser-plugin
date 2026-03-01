@@ -1,4 +1,4 @@
-name: Automated Semantic Release
+name: Auto Release And Build Installers
 
 on:
   push:
@@ -7,12 +7,16 @@ on:
 
 jobs:
   release:
-    name: Auto Release
+    name: Semantic Release
     runs-on: ubuntu-latest
     permissions:
       contents: write
       issues: write
       pull-requests: write
+    outputs:
+      released: ${{ steps.semantic.outputs.new_release_published }}
+      version: ${{ steps.semantic.outputs.new_release_version }}
+      tag: ${{ steps.semantic.outputs.new_release_git_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,7 +29,14 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
       - name: Semantic Release
+        id: semantic
         uses: cycjimmy/semantic-release-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -34,3 +45,82 @@ jobs:
             @semantic-release/changelog
             @semantic-release/git
           branch: main
+
+  build-installers:
+    name: Build ${{ matrix.label }} Installer
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            label: Windows
+            python: "3.12"
+            build_command: bun run dist:win
+            artifact_glob: dist/electron/*.exe
+          - os: macos-latest
+            label: macOS
+            python: "3.12"
+            build_command: bun run dist:mac
+            artifact_glob: dist/electron/*.dmg
+          - os: ubuntu-latest
+            label: Linux
+            python: "3.12"
+            build_command: bun run dist:linux
+            artifact_glob: |
+              dist/electron/*.AppImage
+              dist/electron/*.deb
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt pyinstaller
+
+      - name: Generate app icons
+        run: bun run build:icons
+
+      - name: Build backend binary
+        run: bun run build:backend
+
+      - name: Build installer
+        run: ${{ matrix.build_command }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Upload installer assets to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.release.outputs.tag }}
+          files: ${{ matrix.artifact_glob }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
