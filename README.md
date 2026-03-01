@@ -2,6 +2,8 @@
 
 Electron now provides the operator control panel, while the Python backend remains the single source of truth for hymn state, overlay visibility, and live style settings. OBS or vMix still loads overlay pages from a localhost URL.
 
+<img width="1230" height="794" alt="Screenshot 2026-03-01 151446" src="https://github.com/user-attachments/assets/56296449-293f-4e0c-b5f4-3a06a515b919" />
+
 ## Architecture
 
 - `server.py`: HTTP + WebSocket backend bound to `127.0.0.1`
