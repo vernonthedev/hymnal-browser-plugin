@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v1.3.0...v1.3.1) (2026-03-01)
+
+
+### Bug Fixes
+
+* corrected pywin32 installations for windows only platforms ([aeeeb97](https://github.com/vernonthedev/hymnal-browser-plugin/commit/aeeeb972e523a85950f36306c3e248e11d923e85))
+
 # [1.3.0](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v1.2.0...v1.3.0) (2026-03-01)
 
 
