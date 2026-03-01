@@ -55,24 +55,52 @@ body[data-profile="lyrics"] .overlay-shell {
   text-align: var(--overlay-align);
   opacity: 0;
   transform: translate3d(var(--overlay-x), calc(36px + var(--overlay-y)), 0);
-  transition: opacity 220ms ease, transform 260ms ease;
+  transition:
+    opacity 220ms ease,
+    transform 260ms ease,
+    padding 300ms ease;
+  will-change: transform, opacity;
 }
 
 .overlay-backdrop {
   position: absolute;
   inset: 0;
   border-radius: 22px;
-  background: linear-gradient(135deg, rgba(6, 10, 20, 0.55), rgba(28, 39, 66, 0.55));
+  background: linear-gradient(
+    135deg,
+    rgba(6, 10, 20, 0.55),
+    rgba(28, 39, 66, 0.55)
+  );
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.42);
   pointer-events: none;
+  transition:
+    opacity 300ms ease,
+    background 300ms ease,
+    filter 300ms ease,
+    backdrop-filter 300ms ease;
 }
 
-.overlay-card.backgroundless {
+/* Glassmorphism Effect */
+.overlay-card.glass .overlay-backdrop {
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  background: rgba(15, 23, 42, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.backgroundless .overlay-card {
   padding: 0 !important;
 }
 
-.overlay-card.backgroundless .overlay-backdrop {
+body.backgroundless .overlay-backdrop {
   display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .overlay-card.visible {
@@ -94,6 +122,7 @@ body[data-profile="lyrics"] .overlay-shell {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.76);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .speaker.visible {
@@ -108,6 +137,18 @@ body[data-profile="lyrics"] .overlay-shell {
   font-weight: 700;
   white-space: pre-wrap;
   text-wrap: balance;
+  transition:
+    text-shadow 300ms ease,
+    color 300ms ease;
+}
+
+/* Enhanced readability for backgroundless mode */
+body.backgroundless .text,
+.overlay-card.text-shadow .text {
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.8),
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 .status-badge {
@@ -189,7 +230,8 @@ body[data-profile="lyrics"] .text {
 @keyframes overlay-pop {
   from {
     opacity: 0;
-    transform: translate3d(var(--overlay-x), calc(20px + var(--overlay-y)), 0) scale(0.97);
+    transform: translate3d(var(--overlay-x), calc(20px + var(--overlay-y)), 0)
+      scale(0.97);
   }
   to {
     opacity: 1;

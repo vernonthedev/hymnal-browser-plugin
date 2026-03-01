@@ -53,21 +53,36 @@
     };
     const opacity = Number(style.backgroundOpacity ?? 0.55);
     const gradient = gradientMap[style.backgroundGradient] ?? gradientMap.dark;
-    root.style.setProperty("--overlay-font-size", fontSizeMap[style.fontSizePreset] || "48px");
-    root.style.setProperty("--overlay-align", style.alignment || (profile === "lyrics" ? "left" : "center"));
-    root.style.setProperty("--overlay-safe-margin", `${Number(style.safeMargin || 80)}px`);
+    root.style.setProperty(
+      "--overlay-font-size",
+      fontSizeMap[style.fontSizePreset] || "48px",
+    );
+    root.style.setProperty(
+      "--overlay-align",
+      style.alignment || (profile === "lyrics" ? "left" : "center"),
+    );
+    root.style.setProperty(
+      "--overlay-safe-margin",
+      `${Number(style.safeMargin || 80)}px`,
+    );
     if (currentState.showBackground === false) {
-      cardEl.classList.add("backgroundless");
+      document.body.classList.add("backgroundless");
       cardEl.style.padding = "0";
+      backdropEl.hidden = true;
       backdropEl.style.display = "none";
     } else {
-      cardEl.classList.remove("backgroundless");
+      document.body.classList.remove("backgroundless");
       const [startColor, endColor] = gradient;
+      backdropEl.hidden = false;
       backdropEl.style.display = "";
       backdropEl.style.background = `linear-gradient(135deg, rgba(${startColor[0]}, ${startColor[1]}, ${startColor[2]}, ${opacity}), rgba(${endColor[0]}, ${endColor[1]}, ${endColor[2]}, ${opacity}))`;
       backdropEl.style.boxShadow = "0 20px 50px rgba(15, 23, 42, 0.42)";
       cardEl.style.padding = "";
     }
+
+    cardEl.classList.toggle("glass", style.backgroundMode === "glass");
+    cardEl.classList.toggle("text-shadow", Boolean(style.forceTextShadow));
+
     document.body.dataset.animation = style.animation || "pop";
     speakerEl.textContent = style.speakerLabel || "";
     speakerEl.classList.toggle("visible", Boolean(style.speakerLabel));
@@ -84,7 +99,9 @@
       ...currentState,
       ...nextState,
       showBackground:
-        nextState.showBackground !== undefined ? nextState.showBackground : currentState.showBackground,
+        nextState.showBackground !== undefined
+          ? nextState.showBackground
+          : currentState.showBackground,
       style: {
         ...currentState.style,
         ...(nextState.style || {}),
@@ -92,8 +109,14 @@
     };
     textEl.textContent = currentState.text || "";
     applyStyle(currentState.style || {});
-    cardEl.classList.toggle("visible", Boolean(currentState.visible && currentState.text));
-    cardEl.classList.toggle("blank", !currentState.visible || !currentState.text);
+    cardEl.classList.toggle(
+      "visible",
+      Boolean(currentState.visible && currentState.text),
+    );
+    cardEl.classList.toggle(
+      "blank",
+      !currentState.visible || !currentState.text,
+    );
     if (shouldRetrigger) {
       triggerAnimation();
     }
