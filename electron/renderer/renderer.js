@@ -11,13 +11,13 @@ const state = {
   reconnectTimer: null,
   styleUpdateTimer: null,
   logLines: [],
+  pickerDismissed: false,
 };
 
 const elements = {
   serverPhase: document.getElementById("server-phase"),
   serverPorts: document.getElementById("server-ports"),
   hymnInput: document.getElementById("hymn-input"),
-  hymnOptions: document.getElementById("hymn-options"),
   hymnSearchResults: document.getElementById("hymn-search-results"),
   hymnSearchPopover: document.getElementById("hymn-search-popover"),
   finderResultsCount: document.getElementById("finder-results-count"),
@@ -142,13 +142,7 @@ function renderOverlayUrls() {
 }
 
 function renderHymnOptions() {
-  elements.hymnOptions.innerHTML = "";
-  for (const item of state.hymnIndex) {
-    const option = document.createElement("option");
-    option.value = item.number;
-    option.label = `${item.number} - ${item.preview}`;
-    elements.hymnOptions.appendChild(option);
-  }
+  return;
 }
 
 function renderPresets() {
@@ -184,6 +178,17 @@ function syncStyleForm(style = {}) {
 
 function normalizeText(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+function getHymnTitle(item) {
+  const preview = String(item?.preview || "").trim();
+  if (!preview) {
+    return "Untitled hymn";
+  }
+
+  const firstLine = preview.split(/\r?\n/)[0].trim();
+  const firstSegment = firstLine.split(/[-|:]/)[0].trim();
+  return firstSegment || firstLine;
 }
 
 function getMatchingHymns(query) {
@@ -237,7 +242,7 @@ function renderFinderSpotlight() {
   }
 
   elements.finderSelectionNumber.textContent = `Hymn ${selectedHymn.number}`;
-  elements.finderSelectionPreview.textContent = selectedHymn.preview || "Ready to load.";
+  elements.finderSelectionPreview.textContent = getHymnTitle(selectedHymn);
 }
 
 function renderFinderResults() {
@@ -246,7 +251,12 @@ function renderFinderResults() {
   }
   const results = getMatchingHymns(elements.hymnInput.value);
   const activeNumber = getSelectedHymn()?.number;
+  const query = normalizeText(elements.hymnInput.value);
   elements.finderResultsCount.textContent = `${results.length} hymn${results.length === 1 ? "" : "s"}`;
+  elements.hymnSearchPopover?.classList.toggle("is-hidden", !query || results.length === 0);
+  if (state.pickerDismissed) {
+    elements.hymnSearchPopover?.classList.add("is-hidden");
+  }
 
   elements.hymnSearchResults.innerHTML = "";
 
@@ -260,30 +270,29 @@ function renderFinderResults() {
     button.innerHTML = `
       <span class="result-number">#${hymn.number}</span>
       <div class="result-main">
-        <span class="result-title">Hymn ${hymn.number}</span>
-        <p class="result-preview">${hymn.preview || "No preview available."}</p>
+        <span class="result-title">${getHymnTitle(hymn)}</span>
+        <p class="result-preview">Hymn ${hymn.number}</p>
       </div>
       <span class="result-action">Select</span>
     `;
     button.addEventListener("click", () => {
       elements.hymnInput.value = hymn.number;
+      state.pickerDismissed = true;
       renderFinderSpotlight();
       renderFinderResults();
+      elements.hymnSearchPopover?.classList.add("is-hidden");
     });
     button.addEventListener("dblclick", () => {
       elements.hymnInput.value = hymn.number;
+      state.pickerDismissed = true;
       sendCommand({ cmd: "load", hymn: hymn.number });
+      elements.hymnSearchPopover?.classList.add("is-hidden");
     });
     elements.hymnSearchResults.appendChild(button);
   }
 
   if (!results.length) {
-    elements.hymnSearchResults.innerHTML = `
-      <div class="spotlight-card">
-        <p class="spotlight-label">No matches</p>
-        <p class="spotlight-copy">Try another hymn number or title fragment.</p>
-      </div>
-    `;
+    elements.hymnSearchResults.innerHTML = "";
   }
 }
 
@@ -477,14 +486,39 @@ function bindEvents() {
   });
 
   elements.hymnInput.addEventListener("input", () => {
+    state.pickerDismissed = false;
     renderFinderSpotlight();
+    renderFinderResults();
+  });
+
+  elements.hymnInput.addEventListener("focus", () => {
     renderFinderResults();
   });
 
   elements.hymnInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
+      state.pickerDismissed = true;
       sendCommand({ cmd: "load", hymn: elements.hymnInput.value.trim() });
+      elements.hymnSearchPopover?.classList.add("is-hidden");
+    }
+  });
+
+  elements.loadBtn.addEventListener("click", () => {
+    state.pickerDismissed = true;
+    elements.hymnSearchPopover?.classList.add("is-hidden");
+  });
+
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (
+      elements.hymnSearchPopover &&
+      target instanceof Node &&
+      !elements.hymnSearchPopover.contains(target) &&
+      !elements.hymnInput.contains(target)
+    ) {
+      state.pickerDismissed = true;
+      elements.hymnSearchPopover.classList.add("is-hidden");
     }
   });
 

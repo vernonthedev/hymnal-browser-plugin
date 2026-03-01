@@ -44,17 +44,25 @@
               <span class="badge">Numeric search</span>
             </div>
 
-            <label class="finder-input-wrap" for="hymn-input">
-              <input
-                id="hymn-input"
-                list="hymn-options"
-                inputmode="numeric"
-                autocomplete="off"
-                placeholder="Type hymn number or title"
-              />
-              <button id="load-btn" class="primary-btn" type="button">Load</button>
-              <datalist id="hymn-options"></datalist>
-            </label>
+            <div class="finder-search-shell">
+              <label class="finder-input-wrap" for="hymn-input">
+                <input
+                  id="hymn-input"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  placeholder="Type hymn number or title"
+                />
+                <button id="load-btn" class="primary-btn" type="button">Load</button>
+              </label>
+
+              <div id="hymn-search-popover" class="finder-popover" aria-live="polite">
+                <div class="finder-popover-header">
+                  <p class="spotlight-label">Matching hymns</p>
+                  <span id="finder-results-count" class="finder-results-count">0 hymns</span>
+                </div>
+                <div id="hymn-search-results" class="finder-results" role="listbox"></div>
+              </div>
+            </div>
 
             <div class="finder-summary">
               <span class="summary-label">Selection</span>
