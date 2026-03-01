@@ -273,7 +273,6 @@ function renderFinderResults() {
         <span class="result-title">${getHymnTitle(hymn)}</span>
         <p class="result-preview">Hymn ${hymn.number}</p>
       </div>
-      <span class="result-action">Select</span>
     `;
     button.addEventListener("click", () => {
       elements.hymnInput.value = hymn.number;

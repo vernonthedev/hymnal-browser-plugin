@@ -561,7 +561,7 @@ kbd {
 
 .result-card {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) auto;
+  grid-template-columns: 72px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   min-height: 56px;
@@ -586,8 +586,8 @@ kbd {
   min-height: 32px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(15, 118, 110, 0.08);
-  color: var(--accent-strong);
+  background: rgba(15, 118, 110, 0.1);
+  color: #0f5f59;
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0;
@@ -606,22 +606,15 @@ kbd {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #1f2830;
 }
 
 .result-preview {
   display: block;
   margin: 0;
-  color: var(--muted);
+  color: #6e766f;
   font-size: 0.71rem;
   line-height: 1.2;
-}
-
-.result-action {
-  color: var(--accent-strong);
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 .control-cluster {
