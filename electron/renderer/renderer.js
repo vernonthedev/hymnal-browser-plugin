@@ -38,14 +38,7 @@ const elements = {
   fontSize: document.getElementById("font-size-select"),
   alignment: document.getElementById("alignment-select"),
   animation: document.getElementById("animation-select"),
-  gradient: document.getElementById("gradient-select"),
-  showBackgroundBtn: document.getElementById("show-background-btn"),
-  removeBackgroundBtn: document.getElementById("remove-background-btn"),
-  backgroundStateText: document.getElementById("background-state-text"),
-  backgroundMode: document.getElementById("background-mode-select"),
-  textShadow: document.getElementById("text-shadow-select"),
   safeMargin: document.getElementById("safe-margin-input"),
-  opacity: document.getElementById("opacity-input"),
   speaker: document.getElementById("speaker-input"),
   presetSelect: document.getElementById("preset-select"),
   presetName: document.getElementById("preset-name-input"),
@@ -135,26 +128,14 @@ function syncStyleForm(style = {}) {
   if (document.activeElement !== elements.animation) {
     elements.animation.value = style.animation || "pop";
   }
-  if (document.activeElement !== elements.gradient) {
-    elements.gradient.value = style.backgroundGradient || "dark";
-  }
   if (document.activeElement !== elements.safeMargin) {
     elements.safeMargin.value = String(style.safeMargin ?? 80);
-  }
-  if (document.activeElement !== elements.opacity) {
-    elements.opacity.value = String(style.backgroundOpacity ?? 0.55);
   }
   if (document.activeElement !== elements.speaker) {
     elements.speaker.value = style.speakerLabel || "";
   }
   if (document.activeElement !== elements.speakerTemplate) {
     elements.speakerTemplate.value = style.speakerLabel || "";
-  }
-  if (document.activeElement !== elements.backgroundMode) {
-    elements.backgroundMode.value = style.backgroundMode || "solid";
-  }
-  if (document.activeElement !== elements.textShadow) {
-    elements.textShadow.value = style.forceTextShadow === true ? "on" : "off";
   }
 }
 
@@ -174,12 +155,6 @@ function renderStatus() {
   elements.currentLinePreview.textContent = status.text || "(No text)";
   elements.prevLinePreview.textContent = status.previous_text || "-";
   elements.nextLinePreview.textContent = status.next_text || "-";
-  const backgroundShown = status.show_background !== false;
-  elements.backgroundStateText.textContent = backgroundShown
-    ? "Background is currently shown."
-    : "Background is currently removed.";
-  elements.showBackgroundBtn.classList.toggle("primary-btn", backgroundShown);
-  elements.removeBackgroundBtn.classList.toggle("primary-btn", !backgroundShown);
   syncStyleForm(status.style || {});
 
   if (status.presets) {
@@ -267,11 +242,7 @@ function buildStylePayload() {
     fontSizePreset: elements.fontSize.value,
     alignment: elements.alignment.value,
     animation: elements.animation.value,
-    backgroundGradient: elements.gradient.value,
-    backgroundMode: elements.backgroundMode.value,
-    forceTextShadow: elements.textShadow.value === "on",
     safeMargin: Number(elements.safeMargin.value),
-    backgroundOpacity: Number(elements.opacity.value),
     speakerLabel: elements.speaker.value.trim(),
   };
 }
@@ -331,21 +302,10 @@ function bindEvents() {
     queueStyleUpdate();
   });
 
-  elements.showBackgroundBtn.addEventListener("click", () => {
-    sendCommand({ cmd: "set_background", enabled: true });
-  });
-
-  elements.removeBackgroundBtn.addEventListener("click", () => {
-    sendCommand({ cmd: "set_background", enabled: false });
-  });
-
   [
     elements.fontSize,
     elements.alignment,
     elements.animation,
-    elements.gradient,
-    elements.backgroundMode,
-    elements.textShadow,
     elements.safeMargin,
   ].forEach((input) => {
     input.addEventListener("change", () => {
@@ -353,7 +313,7 @@ function bindEvents() {
     });
   });
 
-  [elements.opacity, elements.speaker].forEach((input) => {
+  [elements.speaker].forEach((input) => {
     input.addEventListener("input", queueStyleUpdate);
     input.addEventListener("change", queueStyleUpdate);
   });

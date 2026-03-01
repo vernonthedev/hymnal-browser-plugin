@@ -1,7 +1,6 @@
 (function () {
   const textEl = document.getElementById("text");
   const cardEl = document.getElementById("overlay-card");
-  const backdropEl = document.getElementById("overlay-backdrop");
   const speakerEl = document.getElementById("speaker");
   const statusEl = document.getElementById("overlay-status");
   const profile = document.body.dataset.profile || "lowerthird";
@@ -37,22 +36,7 @@
       lg: "60px",
       xl: "74px",
     };
-    const gradientMap = {
-      dark: [
-        [6, 10, 20],
-        [28, 39, 66],
-      ],
-      warm: [
-        [82, 28, 18],
-        [145, 64, 31],
-      ],
-      clean: [
-        [2, 6, 23],
-        [30, 41, 59],
-      ],
-    };
-    const opacity = Number(style.backgroundOpacity ?? 0.55);
-    const gradient = gradientMap[style.backgroundGradient] ?? gradientMap.dark;
+
     root.style.setProperty(
       "--overlay-font-size",
       fontSizeMap[style.fontSizePreset] || "48px",
@@ -65,23 +49,6 @@
       "--overlay-safe-margin",
       `${Number(style.safeMargin || 80)}px`,
     );
-    if (currentState.showBackground === false) {
-      document.body.classList.add("backgroundless");
-      cardEl.style.padding = "0";
-      backdropEl.hidden = true;
-      backdropEl.style.display = "none";
-    } else {
-      document.body.classList.remove("backgroundless");
-      const [startColor, endColor] = gradient;
-      backdropEl.hidden = false;
-      backdropEl.style.display = "";
-      backdropEl.style.background = `linear-gradient(135deg, rgba(${startColor[0]}, ${startColor[1]}, ${startColor[2]}, ${opacity}), rgba(${endColor[0]}, ${endColor[1]}, ${endColor[2]}, ${opacity}))`;
-      backdropEl.style.boxShadow = "0 20px 50px rgba(15, 23, 42, 0.42)";
-      cardEl.style.padding = "";
-    }
-
-    cardEl.classList.toggle("glass", style.backgroundMode === "glass");
-    cardEl.classList.toggle("text-shadow", Boolean(style.forceTextShadow));
 
     document.body.dataset.animation = style.animation || "pop";
     speakerEl.textContent = style.speakerLabel || "";
@@ -98,10 +65,6 @@
     currentState = {
       ...currentState,
       ...nextState,
-      showBackground:
-        nextState.showBackground !== undefined
-          ? nextState.showBackground
-          : currentState.showBackground,
       style: {
         ...currentState.style,
         ...(nextState.style || {}),
@@ -157,8 +120,7 @@
     if (
       payload.type === "state" ||
       payload.type === "visibility" ||
-      payload.type === "style" ||
-      payload.type === "background"
+      payload.type === "style"
     ) {
       renderState(payload, payload.type !== "style");
       showStatus("");
