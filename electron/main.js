@@ -28,6 +28,10 @@ function sendToRenderer(channel, payload) {
 
 function getRepoReadablePath(relativePath) {
   if (app.isPackaged) {
+    const resourcePath = path.join(process.resourcesPath, relativePath);
+    if (fs.existsSync(resourcePath)) {
+      return resourcePath;
+    }
     return path.join(process.resourcesPath, "app.asar.unpacked", relativePath);
   }
   return path.join(app.getAppPath(), relativePath);
@@ -102,7 +106,7 @@ function ensureDirectory(dirPath) {
 function seedHymnsDir(targetHymnsDir) {
   ensureDirectory(targetHymnsDir);
   const sourceDir = app.isPackaged
-    ? path.join(process.resourcesPath, "app.asar.unpacked", "hymns")
+    ? getRepoReadablePath("hymns")
     : path.join(app.getAppPath(), "hymns");
 
   if (!fs.existsSync(sourceDir)) {
@@ -260,11 +264,13 @@ async function startBackend() {
   const httpPort = await choosePort(DEFAULT_HTTP_PORT);
   const wsPort = await choosePort(DEFAULT_WS_PORT);
   const backend = resolveBackendCommand();
+  const baseDir = app.isPackaged ? process.resourcesPath : app.getAppPath();
   const args = [
     ...backend.args,
     app.isPackaged ? "" : path.join(app.getAppPath(), "server.py"),
     `--http-port=${httpPort}`,
     `--ws-port=${wsPort}`,
+    `--base-dir=${baseDir}`,
     `--data-dir=${dataDir}`,
     `--token=${config.token}`,
   ].filter(Boolean);

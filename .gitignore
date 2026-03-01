@@ -6,3 +6,6 @@ AGENTS.md
 node_modules/
 dist/
 .build/
+__pycache__/
+.venv/
+.env

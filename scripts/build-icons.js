@@ -1,19 +1,71 @@
-const { mkdirSync } = require("fs");
+const { existsSync, mkdirSync } = require("fs");
 const path = require("path");
 const { spawnSync } = require("child_process");
 
 const root = path.resolve(__dirname, "..");
 const outputDir = path.join(root, "assets", "icons");
+const iconSource = path.join(root, "assets", "icon-source.png");
+const iconGenCommand = process.platform === "win32"
+  ? path.join(root, "node_modules", ".bin", "icon-gen.exe")
+  : path.join(root, "node_modules", ".bin", "icon-gen");
 
 mkdirSync(outputDir, { recursive: true });
 
+function detectPython() {
+  const candidates = process.platform === "win32"
+    ? [
+        path.join(root, "env", "Scripts", "python.exe"),
+        "python",
+        "py",
+      ]
+    : [
+        path.join(root, "env", "bin", "python"),
+        "python3",
+        "python",
+      ];
+
+  for (const command of candidates) {
+    if (command.includes(path.sep) && !existsSync(command)) {
+      continue;
+    }
+
+    const args = command === "py" ? ["-3.12", "--version"] : ["--version"];
+    const result = spawnSync(command, args, {
+      cwd: root,
+      stdio: "ignore",
+      shell: process.platform === "win32" && !command.includes(path.sep),
+    });
+
+    if (result.status === 0) {
+      return command;
+    }
+  }
+
+  throw new Error("Python 3.12 was not found. Install it or create the local env first.");
+}
+
+const python = detectPython();
+const prepareArgs = python === "py"
+  ? ["-3.12", "scripts/prepare-icon-source.py"]
+  : ["scripts/prepare-icon-source.py"];
+
+const prepareResult = spawnSync(python, prepareArgs, {
+  cwd: root,
+  stdio: "inherit",
+  shell: process.platform === "win32" && !python.includes(path.sep),
+});
+
+if (prepareResult.status !== 0) {
+  process.exit(prepareResult.status || 1);
+}
+
 const result = spawnSync(
-  "bunx",
-  ["--bun", "icon-gen", "-i", "assets/logo.png", "-o", "assets/icons"],
+  iconGenCommand,
+  ["-i", iconSource, "-o", "assets/icons"],
   {
     cwd: root,
     stdio: "inherit",
-    shell: process.platform === "win32",
+    shell: false,
   },
 );
 

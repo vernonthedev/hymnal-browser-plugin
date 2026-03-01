@@ -9,13 +9,14 @@
     "dev": "electron .",
     "start": "electron .",
     "verify:build-assets": "node scripts/verify-build-assets.js",
+    "prepare:dist": "node scripts/prepare-dist.js",
     "build:icons": "node scripts/build-icons.js",
     "build:backend": "bun run verify:build-assets && node scripts/build-backend.js",
-    "dist": "bun run verify:build-assets && electron-builder",
-    "dist:dir": "bun run verify:build-assets && electron-builder --dir",
-    "dist:win": "bun run verify:build-assets && electron-builder --win nsis",
-    "dist:mac": "bun run verify:build-assets && electron-builder --mac dmg",
-    "dist:linux": "bun run verify:build-assets && electron-builder --linux AppImage deb"
+    "dist": "bun run prepare:dist && bun run verify:build-assets && electron-builder",
+    "dist:dir": "bun run prepare:dist && bun run verify:build-assets && electron-builder --dir",
+    "dist:win": "bun run prepare:dist && bun run verify:build-assets && electron-builder --win nsis",
+    "dist:mac": "bun run prepare:dist && bun run verify:build-assets && electron-builder --mac dmg",
+    "dist:linux": "bun run prepare:dist && bun run verify:build-assets && electron-builder --linux AppImage deb"
   },
   "build": {
     "appId": "com.sda.hymnal.desktop",
@@ -38,6 +39,32 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "overlays",
+        "to": "overlays",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": [
+          "overlay.css",
+          "overlay-client.js"
+        ]
+      },
+      {
+        "from": "hymns",
+        "to": "hymns",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "CHANGELOG.md",
+        "to": "CHANGELOG.md"
       }
     ],
     "directories": {
