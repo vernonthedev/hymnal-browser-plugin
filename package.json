@@ -8,13 +8,14 @@
   "scripts": {
     "dev": "electron .",
     "start": "electron .",
-    "build:icons": "bunx --bun icon-gen -i assets/logo.png -o assets/icons",
-    "build:backend": "node scripts/build-backend.js",
-    "dist": "electron-builder",
-    "dist:dir": "electron-builder --dir",
-    "dist:win": "electron-builder --win nsis",
-    "dist:mac": "electron-builder --mac dmg",
-    "dist:linux": "electron-builder --linux AppImage deb"
+    "verify:build-assets": "node scripts/verify-build-assets.js",
+    "build:icons": "node scripts/build-icons.js",
+    "build:backend": "bun run verify:build-assets && node scripts/build-backend.js",
+    "dist": "bun run verify:build-assets && electron-builder",
+    "dist:dir": "bun run verify:build-assets && electron-builder --dir",
+    "dist:win": "bun run verify:build-assets && electron-builder --win nsis",
+    "dist:mac": "bun run verify:build-assets && electron-builder --mac dmg",
+    "dist:linux": "bun run verify:build-assets && electron-builder --linux AppImage deb"
   },
   "build": {
     "appId": "com.sda.hymnal.desktop",
@@ -45,11 +46,11 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "assets/icons/icon.ico"
+      "icon": "assets/icons/app.ico"
     },
     "mac": {
       "target": "dmg",
-      "icon": "assets/icons/icon.icns",
+      "icon": "assets/icons/app.icns",
       "hardenedRuntime": true,
       "gatekeeperAssess": false
     },

@@ -18,6 +18,14 @@ function run(command, args) {
 }
 
 function detectPython() {
+  const localVenvCandidates = process.platform === "win32"
+    ? [
+        [path.join(root, "env", "Scripts", "python.exe"), []],
+      ]
+    : [
+        [path.join(root, "env", "bin", "python"), []],
+      ];
+
   const candidates = process.platform === "win32"
     ? [
         ["py", ["-3.12"]],
@@ -29,7 +37,7 @@ function detectPython() {
         ["python", []],
       ];
 
-  for (const [command, baseArgs] of candidates) {
+  for (const [command, baseArgs] of [...localVenvCandidates, ...candidates]) {
     const result = spawnSync(command, [...baseArgs, "--version"], {
       cwd: root,
       stdio: "ignore",

@@ -53,6 +53,8 @@ bun run build:icons
 bun run build:backend
 ```
 
+If generated icons are missing, packaging commands now fail early with a clear preflight error telling you to run `bun run build:icons`.
+
 Then package the desktop app:
 
 ```powershell
