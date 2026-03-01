@@ -58,6 +58,9 @@ const elements = {
 };
 
 function renderLogs() {
+  if (!elements.logOutput) {
+    return;
+  }
   elements.logOutput.textContent = state.logLines.length
     ? state.logLines.join("\n")
     : "Waiting for backend logs...";
@@ -238,6 +241,9 @@ function renderFinderSpotlight() {
 }
 
 function renderFinderResults() {
+  if (!elements.hymnSearchResults || !elements.finderResultsCount) {
+    return;
+  }
   const results = getMatchingHymns(elements.hymnInput.value);
   const activeNumber = getSelectedHymn()?.number;
   elements.finderResultsCount.textContent = `${results.length} hymn${results.length === 1 ? "" : "s"}`;
@@ -430,7 +436,7 @@ function bindEvents() {
   elements.windowCloseBtn.addEventListener("click", async () => {
     await window.desktopApi.closeWindow();
   });
-  elements.copyDiagnosticsBtn.addEventListener("click", copyDiagnostics);
+  elements.copyDiagnosticsBtn?.addEventListener("click", copyDiagnostics);
   elements.openHymnsBtn.addEventListener("click", async () => {
     if (state.runtime?.hymnsDir) {
       await window.desktopApi.openPath(state.runtime.hymnsDir);
