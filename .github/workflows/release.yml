@@ -61,9 +61,8 @@ jobs:
             python: "3.12"
             build_command: bun run dist:win
             artifact_glob: |
-              dist/electron/*win-*.exe
-              dist/electron/*portable*.exe
-              dist/electron/*.blockmap
+              dist/electron/*-setup.exe
+              dist/electron/*-portable.exe
           - os: macos-latest
             label: macOS
             python: "3.12"
