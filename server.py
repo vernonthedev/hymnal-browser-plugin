@@ -160,6 +160,8 @@ class AppState:
                 "line_index": self.line_index,
                 "total_lines": len(self.lines),
                 "text": self.current_text(),
+                "previous_text": self.lines[self.line_index - 1] if self.line_index > 0 and self.lines else "",
+                "next_text": self.lines[self.line_index + 1] if self.line_index + 1 < len(self.lines) else "",
                 "visible": self.visible,
                 "connected_clients": self.connected_clients,
                 "control_clients": self.control_clients,

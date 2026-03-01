@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SDA Hymnal Desktop</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">SDA Hymnal Desktop</p>
+        <h1>Control hymns locally. Broadcast overlays by URL.</h1>
+        <p class="hero-copy">The desktop app drives the Python backend, while OBS or vMix keeps loading overlays from localhost.</p>
+      </div>
+      <div class="status-chip">
+        <span id="server-phase" class="phase phase-starting">Server starting</span>
+        <span id="server-ports">HTTP -, WS -</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel control-panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Control</p>
+            <h2>Hymn navigation</h2>
+          </div>
+          <button id="reload-index-btn" class="ghost-btn">Reload hymns index</button>
+        </div>
+
+        <div class="input-row">
+          <label class="field">
+            <span>Hymn number</span>
+            <input id="hymn-input" list="hymn-options" placeholder="Type hymn number">
+            <datalist id="hymn-options"></datalist>
+          </label>
+          <button id="load-btn" class="primary-btn">Load</button>
+        </div>
+
+        <div class="button-grid">
+          <button id="prev-btn">Prev</button>
+          <button id="next-btn" class="primary-btn">Next</button>
+          <button id="reset-btn">Reset</button>
+          <button id="blank-btn">Blank</button>
+          <button id="show-btn">Show</button>
+          <button id="retrigger-btn">Retrigger</button>
+        </div>
+
+        <div class="shortcut-list">
+          <span><kbd>Enter</kbd> Load</span>
+          <span><kbd>Space</kbd> / <kbd>Right</kbd> Next</span>
+          <span><kbd>Left</kbd> Prev</span>
+          <span><kbd>R</kbd> Reset</span>
+          <span><kbd>B</kbd> Blank</span>
+        </div>
+      </section>
+
+      <section class="panel preview-panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Preview</p>
+            <h2>Current line</h2>
+          </div>
+          <button id="copy-diagnostics-btn" class="ghost-btn">Copy diagnostics</button>
+        </div>
+        <div class="preview-stack">
+          <div class="preview-box muted">
+            <span class="preview-label">Previous</span>
+            <p id="prev-line-preview">-</p>
+          </div>
+          <div class="preview-box current">
+            <span class="preview-label">Live</span>
+            <p id="current-line-preview">Waiting for backend</p>
+          </div>
+          <div class="preview-box muted">
+            <span class="preview-label">Next</span>
+            <p id="next-line-preview">-</p>
+          </div>
+        </div>
+        <div class="meta-grid">
+          <div><span>Current hymn</span><strong id="current-hymn">-</strong></div>
+          <div><span>Line</span><strong id="line-meta">-</strong></div>
+          <div><span>Overlays</span><strong id="overlay-count">0</strong></div>
+          <div><span>Visibility</span><strong id="visibility-meta">Shown</strong></div>
+        </div>
+      </section>
+
+      <section class="panel url-panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Overlays</p>
+            <h2>Browser source URLs</h2>
+          </div>
+          <button id="open-hymns-btn" class="ghost-btn">Open hymns folder</button>
+        </div>
+        <div id="overlay-url-list" class="url-list"></div>
+      </section>
+
+      <section class="panel style-panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Theme</p>
+            <h2>Live style controls</h2>
+          </div>
+        </div>
+        <div class="style-grid">
+          <label class="field">
+            <span>Font size</span>
+            <select id="font-size-select">
+              <option value="sm">Small</option>
+              <option value="md" selected>Medium</option>
+              <option value="lg">Large</option>
+              <option value="xl">XL</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Alignment</span>
+            <select id="alignment-select">
+              <option value="left">Left</option>
+              <option value="center" selected>Center</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Animation</span>
+            <select id="animation-select">
+              <option value="slide">Slide</option>
+              <option value="fade">Fade</option>
+              <option value="pop" selected>Pop</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Gradient</span>
+            <select id="gradient-select">
+              <option value="dark" selected>Dark</option>
+              <option value="warm">Warm</option>
+              <option value="clean">Clean</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Safe margin</span>
+            <input id="safe-margin-input" type="range" min="40" max="160" value="80">
+          </label>
+          <label class="field">
+            <span>Background opacity</span>
+            <input id="opacity-input" type="range" min="0.15" max="0.9" step="0.05" value="0.55">
+          </label>
+          <label class="field full">
+            <span>Speaker label</span>
+            <input id="speaker-input" placeholder="Optional label">
+          </label>
+        </div>
+        <div class="preset-row">
+          <label class="field">
+            <span>Preset</span>
+            <select id="preset-select"></select>
+          </label>
+          <label class="field">
+            <span>Save as</span>
+            <input id="preset-name-input" placeholder="Sunday AM">
+          </label>
+          <button id="apply-preset-btn">Apply preset</button>
+          <button id="save-preset-btn" class="primary-btn">Save preset</button>
+        </div>
+      </section>
+
+      <section class="panel diagnostics-panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Diagnostics</p>
+            <h2>Backend events</h2>
+          </div>
+        </div>
+        <pre id="log-output" class="log-output">Waiting for backend logs...</pre>
+      </section>
+    </main>
+
+    <div id="toast-region" class="toast-region"></div>
+  </div>
+
+  <script src="./renderer.js"></script>
+</body>
+</html>
