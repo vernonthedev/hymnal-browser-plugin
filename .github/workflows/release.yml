@@ -108,17 +108,35 @@ jobs:
       - name: Build backend binary
         run: bun run build:backend
 
+      - name: Configure signing environment
+        shell: bash
+        run: |
+          echo "GH_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> "$GITHUB_ENV"
+
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            if [[ -n "${{ secrets.WIN_CSC_LINK }}" ]]; then
+              echo "WIN_CSC_LINK=${{ secrets.WIN_CSC_LINK }}" >> "$GITHUB_ENV"
+              echo "WIN_CSC_KEY_PASSWORD=${{ secrets.WIN_CSC_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+            elif [[ -n "${{ secrets.CSC_LINK }}" ]]; then
+              echo "CSC_LINK=${{ secrets.CSC_LINK }}" >> "$GITHUB_ENV"
+              echo "CSC_KEY_PASSWORD=${{ secrets.CSC_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+            fi
+          fi
+
+          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            if [[ -n "${{ secrets.CSC_LINK }}" ]]; then
+              echo "CSC_LINK=${{ secrets.CSC_LINK }}" >> "$GITHUB_ENV"
+              echo "CSC_KEY_PASSWORD=${{ secrets.CSC_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+              echo "APPLE_ID=${{ secrets.APPLE_ID }}" >> "$GITHUB_ENV"
+              echo "APPLE_APP_SPECIFIC_PASSWORD=${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" >> "$GITHUB_ENV"
+              echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> "$GITHUB_ENV"
+            else
+              echo "CSC_IDENTITY_AUTO_DISCOVERY=false" >> "$GITHUB_ENV"
+            fi
+          fi
+
       - name: Build installer
         run: ${{ matrix.build_command }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       - name: Upload installer assets to release
         uses: softprops/action-gh-release@v2

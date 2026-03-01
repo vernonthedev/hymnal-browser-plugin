@@ -3,7 +3,11 @@
   "version": "2.0.0",
   "description": "Electron desktop controller for the SDA Hymnal lower thirds backend",
   "main": "electron/main.js",
-  "author": "vernonthedev",
+  "author": {
+    "name": "vernonthedev",
+    "email": "techjaja2@gmail.com",
+    "url": "https://vernon.skope.au"
+  },
   "license": "MIT",
   "scripts": {
     "dev": "electron .",
@@ -12,11 +16,11 @@
     "prepare:dist": "node scripts/prepare-dist.js",
     "build:icons": "node scripts/build-icons.js",
     "build:backend": "bun run verify:build-assets && node scripts/build-backend.js",
-    "dist": "bun run prepare:dist && bun run verify:build-assets && electron-builder",
-    "dist:dir": "bun run prepare:dist && bun run verify:build-assets && electron-builder --dir",
-    "dist:win": "bun run prepare:dist && bun run verify:build-assets && electron-builder --win nsis portable",
-    "dist:mac": "bun run prepare:dist && bun run verify:build-assets && electron-builder --mac dmg",
-    "dist:linux": "bun run prepare:dist && bun run verify:build-assets && electron-builder --linux AppImage deb"
+    "dist": "bun run prepare:dist && bun run verify:build-assets && electron-builder --publish never",
+    "dist:dir": "bun run prepare:dist && bun run verify:build-assets && electron-builder --dir --publish never",
+    "dist:win": "bun run prepare:dist && bun run verify:build-assets && electron-builder --win nsis portable --publish never",
+    "dist:mac": "bun run prepare:dist && bun run verify:build-assets && electron-builder --mac dmg --publish never",
+    "dist:linux": "bun run prepare:dist && bun run verify:build-assets && electron-builder --linux AppImage deb --publish never"
   },
   "build": {
     "appId": "com.sda.hymnal.desktop",
@@ -82,6 +86,8 @@
       "gatekeeperAssess": false
     },
     "linux": {
+      "category": "Utility",
+      "maintainer": "vernonthedev <techjaja2@gmail.com>",
       "icon": "assets/icons",
       "target": [
         "AppImage",
