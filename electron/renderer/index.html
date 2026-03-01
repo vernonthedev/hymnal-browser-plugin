@@ -23,6 +23,9 @@
           </div>
 
           <div class="titlebar-actions">
+            <button id="open-urls-btn" class="icon-btn" type="button">URLs</button>
+            <button id="open-help-btn" class="icon-btn" type="button">Help</button>
+            <button id="open-about-btn" class="icon-btn" type="button">About</button>
             <button id="reload-index-btn" class="icon-btn" type="button">Refresh</button>
             <button id="open-hymns-btn" class="icon-btn" type="button">Hymns</button>
             <button id="window-minimize-btn" class="window-btn" type="button" aria-label="Minimize window">
@@ -239,6 +242,21 @@
       </div>
 
       <div id="toast-region" class="toast-region"></div>
+
+      <div id="modal-overlay" class="modal-overlay is-hidden">
+        <section class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <div class="modal-header">
+            <div>
+              <p id="modal-eyebrow" class="overline">Panel</p>
+              <h2 id="modal-title">Details</h2>
+            </div>
+            <button id="modal-close-btn" class="window-btn" type="button" aria-label="Close panel">
+              <span></span>
+            </button>
+          </div>
+          <div id="modal-body" class="modal-body"></div>
+        </section>
+      </div>
     </div>
 
     <script src="./renderer.js"></script>

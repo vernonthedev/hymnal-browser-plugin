@@ -31,6 +31,9 @@ const elements = {
   showBtn: document.getElementById("show-btn"),
   retriggerBtn: document.getElementById("retrigger-btn"),
   reloadIndexBtn: document.getElementById("reload-index-btn"),
+  openUrlsBtn: document.getElementById("open-urls-btn"),
+  openHelpBtn: document.getElementById("open-help-btn"),
+  openAboutBtn: document.getElementById("open-about-btn"),
   windowMinimizeBtn: document.getElementById("window-minimize-btn"),
   windowCloseBtn: document.getElementById("window-close-btn"),
   prevLinePreview: document.getElementById("prev-line-preview"),
@@ -45,6 +48,11 @@ const elements = {
   openHymnsBtn: document.getElementById("open-hymns-btn"),
   logOutput: document.getElementById("log-output"),
   toastRegion: document.getElementById("toast-region"),
+  modalOverlay: document.getElementById("modal-overlay"),
+  modalEyebrow: document.getElementById("modal-eyebrow"),
+  modalTitle: document.getElementById("modal-title"),
+  modalBody: document.getElementById("modal-body"),
+  modalCloseBtn: document.getElementById("modal-close-btn"),
   speakerTemplate: document.getElementById("speaker-template-select"),
   fontSize: document.getElementById("font-size-select"),
   alignment: document.getElementById("alignment-select"),
@@ -78,6 +86,89 @@ function showToast(message, level = "info") {
   toast.textContent = message;
   elements.toastRegion.appendChild(toast);
   window.setTimeout(() => toast.remove(), 3500);
+}
+
+function closeModal() {
+  elements.modalOverlay?.classList.add("is-hidden");
+}
+
+function openModal({ eyebrow, title, body }) {
+  if (!elements.modalOverlay || !elements.modalEyebrow || !elements.modalTitle || !elements.modalBody) {
+    return;
+  }
+
+  elements.modalEyebrow.textContent = eyebrow;
+  elements.modalTitle.textContent = title;
+  elements.modalBody.innerHTML = body;
+  elements.modalOverlay.classList.remove("is-hidden");
+}
+
+function buildUrlsModal() {
+  if (!state.runtime?.overlayUrls?.length) {
+    return `
+      <div class="modal-copy">
+        <p>Overlay URLs will appear here once the backend runtime is available.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="modal-list">
+      ${state.runtime.overlayUrls
+        .map(
+          (overlay) => `
+            <article class="modal-card">
+              <div class="modal-card-header">
+                <strong>${overlay.name}</strong>
+                <span>${overlay.path}</span>
+              </div>
+              <code>${overlay.url}</code>
+            </article>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function buildHelpModal() {
+  return `
+    <div class="modal-copy">
+      <p>Use hymn number search to load lyrics quickly, then control progression with keyboard shortcuts or the transport buttons.</p>
+      <div class="modal-list">
+        <article class="modal-card">
+          <div class="modal-card-header"><strong>Shortcuts</strong><span>Keyboard</span></div>
+          <p><kbd>Enter</kbd> Load selected hymn, <kbd>Space</kbd> Next line, <kbd>Left</kbd> Previous line, <kbd>R</kbd> Reset, <kbd>B</kbd> Blank.</p>
+        </article>
+        <article class="modal-card">
+          <div class="modal-card-header"><strong>Overlays</strong><span>OBS / vMix</span></div>
+          <p>Copy overlay URLs from the URLs page or the right sidebar and use them as browser sources.</p>
+        </article>
+        <article class="modal-card">
+          <div class="modal-card-header"><strong>Theme Controls</strong><span>Live output</span></div>
+          <p>Template, font size, alignment, animation, and safe margin update the live overlay style immediately.</p>
+        </article>
+      </div>
+    </div>
+  `;
+}
+
+function buildAboutModal() {
+  return `
+    <div class="modal-copy">
+      <p>SDA Hymnal Desktop is a local broadcast console for loading hymn lyrics and sending live overlay updates to browser-based outputs.</p>
+      <div class="modal-list">
+        <article class="modal-card">
+          <div class="modal-card-header"><strong>App Version</strong><span>${state.appVersion}</span></div>
+          <p>Electron renderer connected to the local Python backend.</p>
+        </article>
+        <article class="modal-card">
+          <div class="modal-card-header"><strong>Runtime</strong><span>${state.runtime ? "Connected" : "Waiting"}</span></div>
+          <p>${state.runtime ? `HTTP ${state.runtime.httpPort}, WS ${state.runtime.wsPort}` : "Backend runtime details are not available yet."}</p>
+        </article>
+      </div>
+    </div>
+  `;
 }
 
 function setLifecycle(phase, message) {
@@ -438,6 +529,27 @@ function bindEvents() {
   elements.showBtn.addEventListener("click", () => sendCommand({ cmd: "show" }));
   elements.retriggerBtn.addEventListener("click", () => sendCommand({ cmd: "retrigger" }));
   elements.reloadIndexBtn.addEventListener("click", () => sendCommand({ cmd: "reload_hymns" }));
+  elements.openUrlsBtn.addEventListener("click", () => {
+    openModal({
+      eyebrow: "URLs",
+      title: "Overlay URLs",
+      body: buildUrlsModal(),
+    });
+  });
+  elements.openHelpBtn.addEventListener("click", () => {
+    openModal({
+      eyebrow: "Help",
+      title: "Using the console",
+      body: buildHelpModal(),
+    });
+  });
+  elements.openAboutBtn.addEventListener("click", () => {
+    openModal({
+      eyebrow: "About",
+      title: "About this application",
+      body: buildAboutModal(),
+    });
+  });
   elements.windowMinimizeBtn.addEventListener("click", async () => {
     await window.desktopApi.minimizeWindow();
   });
@@ -445,6 +557,7 @@ function bindEvents() {
     await window.desktopApi.closeWindow();
   });
   elements.copyDiagnosticsBtn?.addEventListener("click", copyDiagnostics);
+  elements.modalCloseBtn?.addEventListener("click", closeModal);
   elements.openHymnsBtn.addEventListener("click", async () => {
     if (state.runtime?.hymnsDir) {
       await window.desktopApi.openPath(state.runtime.hymnsDir);
@@ -518,6 +631,12 @@ function bindEvents() {
     ) {
       state.pickerDismissed = true;
       elements.hymnSearchPopover.classList.add("is-hidden");
+    }
+  });
+
+  elements.modalOverlay?.addEventListener("click", (event) => {
+    if (event.target === elements.modalOverlay) {
+      closeModal();
     }
   });
 

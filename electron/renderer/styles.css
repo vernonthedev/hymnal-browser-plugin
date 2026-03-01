@@ -282,7 +282,8 @@ label {
   gap: 14px;
   min-height: 0;
   overflow: hidden;
-  padding-bottom: 2px;
+  padding-bottom: 8px;
+  align-items: stretch;
 }
 
 .panel {
@@ -910,6 +911,111 @@ input[type="range"] {
 
 .toast-error {
   background: rgba(177, 65, 85, 0.94);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: rgba(27, 35, 41, 0.28);
+  backdrop-filter: blur(8px);
+}
+
+.modal-overlay.is-hidden {
+  display: none;
+}
+
+.modal-sheet {
+  width: min(760px, 100%);
+  max-height: min(620px, calc(100vh - 56px));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+  padding: 18px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(245, 236, 223, 0.94));
+  border: 1px solid var(--line);
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-header h2 {
+  margin: 4px 0 0;
+  font-size: 1.4rem;
+  letter-spacing: -0.04em;
+}
+
+.modal-body {
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.modal-copy {
+  display: grid;
+  gap: 12px;
+}
+
+.modal-copy > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.modal-list {
+  display: grid;
+  gap: 10px;
+}
+
+.modal-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.modal-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.modal-card-header strong {
+  font-size: 0.95rem;
+}
+
+.modal-card-header span {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.modal-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.modal-card code {
+  display: block;
+  padding: 10px 11px;
+  border-radius: 12px;
+  background: rgba(231, 220, 203, 0.88);
+  color: #5e625f;
+  font-size: 0.74rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .scroll-area,
