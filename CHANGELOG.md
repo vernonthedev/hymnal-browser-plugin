@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v1.3.1...v1.4.0) (2026-03-01)
+
+
+### Features
+
+* Add GitHub Actions workflow for automated semantic releases and multi-platform installer builds, alongside minor package.json updates for author details and build script modifications. ([cc7d096](https://github.com/vernonthedev/hymnal-browser-plugin/commit/cc7d0962ccfeb02400f22a499c1c224c93574b53))
+
 ## [1.3.1](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v1.3.0...v1.3.1) (2026-03-01)
 
 
