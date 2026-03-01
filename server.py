@@ -336,12 +336,16 @@ class AppRequestHandler(http.server.SimpleHTTPRequestHandler):
 
 
 def send_json(server: WebsocketServer, client: dict[str, Any], payload: dict[str, Any]) -> None:
+    if not client:
+        return
     server.send_message(client, json.dumps(payload))
 
 
 def broadcast(server: WebsocketServer, payload: dict[str, Any], targets: list[dict[str, Any]] | None = None) -> None:
     message = json.dumps(payload)
     for client in targets or list(server.clients):
+        if not client:
+            continue
         server.send_message(client, message)
 
 
@@ -371,6 +375,8 @@ def start_websocket_server(app_state: AppState) -> WebsocketServer:
     ws_server = WebsocketServer(host=HOST, port=app_state.ws_port, loglevel=0)
 
     def new_client(client: dict[str, Any], server: WebsocketServer) -> None:
+        if not client:
+            return
         mark_client_role(app_state, client["id"], "overlay")
         send_json(
             server,
@@ -387,6 +393,8 @@ def start_websocket_server(app_state: AppState) -> WebsocketServer:
             send_json(server, client, app_state.overlay_payload("state"))
 
     def client_left(client: dict[str, Any], server: WebsocketServer) -> None:
+        if not client:
+            return
         client_id = client["id"]
         if client_id in app_state.overlay_clients:
             app_state.overlay_clients.pop(client_id, None)
@@ -397,6 +405,8 @@ def start_websocket_server(app_state: AppState) -> WebsocketServer:
         broadcast(server, app_state.overlay_payload("status"))
 
     def message_received(client: dict[str, Any], server: WebsocketServer, raw_message: str) -> None:
+        if not client:
+            return
         try:
             message = json.loads(raw_message)
         except json.JSONDecodeError:
@@ -451,7 +461,8 @@ def start_websocket_server(app_state: AppState) -> WebsocketServer:
                 authorized_overlays = [
                     overlay_client
                     for overlay_client in server.clients
-                    if overlay_client["id"] in app_state.overlay_clients
+                    if overlay_client
+                    and overlay_client["id"] in app_state.overlay_clients
                     and (
                         not app_state.token
                         or app_state.overlay_clients[overlay_client["id"]].get("authorized")
