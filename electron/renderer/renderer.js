@@ -6,6 +6,7 @@ const state = {
   presets: {},
   appVersion: "0.0.0",
   reconnectTimer: null,
+  styleUpdateTimer: null,
 };
 
 const elements = {
@@ -118,13 +119,27 @@ function renderPresets() {
 }
 
 function syncStyleForm(style = {}) {
-  elements.fontSize.value = style.fontSizePreset || "md";
-  elements.alignment.value = style.alignment || "center";
-  elements.animation.value = style.animation || "pop";
-  elements.gradient.value = style.backgroundGradient || "dark";
-  elements.safeMargin.value = String(style.safeMargin ?? 80);
-  elements.opacity.value = String(style.backgroundOpacity ?? 0.55);
-  elements.speaker.value = style.speakerLabel || "";
+  if (document.activeElement !== elements.fontSize) {
+    elements.fontSize.value = style.fontSizePreset || "md";
+  }
+  if (document.activeElement !== elements.alignment) {
+    elements.alignment.value = style.alignment || "center";
+  }
+  if (document.activeElement !== elements.animation) {
+    elements.animation.value = style.animation || "pop";
+  }
+  if (document.activeElement !== elements.gradient) {
+    elements.gradient.value = style.backgroundGradient || "dark";
+  }
+  if (document.activeElement !== elements.safeMargin) {
+    elements.safeMargin.value = String(style.safeMargin ?? 80);
+  }
+  if (document.activeElement !== elements.opacity) {
+    elements.opacity.value = String(style.backgroundOpacity ?? 0.55);
+  }
+  if (document.activeElement !== elements.speaker) {
+    elements.speaker.value = style.speakerLabel || "";
+  }
 }
 
 function renderStatus() {
@@ -233,6 +248,13 @@ function buildStylePayload() {
   };
 }
 
+function queueStyleUpdate() {
+  window.clearTimeout(state.styleUpdateTimer);
+  state.styleUpdateTimer = window.setTimeout(() => {
+    sendCommand({ cmd: "update_style", style: buildStylePayload() });
+  }, 180);
+}
+
 async function copyDiagnostics() {
   const diagnostics = {
     appVersion: state.appVersion,
@@ -268,12 +290,15 @@ function bindEvents() {
     elements.animation,
     elements.gradient,
     elements.safeMargin,
-    elements.opacity,
-    elements.speaker,
   ].forEach((input) => {
     input.addEventListener("change", () => {
-      sendCommand({ cmd: "update_style", style: buildStylePayload() });
+      queueStyleUpdate();
     });
+  });
+
+  [elements.opacity, elements.speaker].forEach((input) => {
+    input.addEventListener("input", queueStyleUpdate);
+    input.addEventListener("change", queueStyleUpdate);
   });
 
   elements.applyPresetBtn.addEventListener("click", () => {

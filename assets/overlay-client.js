@@ -37,9 +37,9 @@
       xl: "74px",
     };
     const gradientMap = {
-      dark: "linear-gradient(135deg, rgba(6, 10, 20, 0.92), rgba(28, 39, 66, 0.78))",
-      warm: "linear-gradient(135deg, rgba(82, 28, 18, 0.88), rgba(145, 64, 31, 0.62))",
-      clean: "linear-gradient(135deg, rgba(2, 6, 23, 0.72), rgba(30, 41, 59, 0.46))",
+      dark: "linear-gradient(135deg, rgb(6, 10, 20), rgb(28, 39, 66))",
+      warm: "linear-gradient(135deg, rgb(82, 28, 18), rgb(145, 64, 31))",
+      clean: "linear-gradient(135deg, rgb(2, 6, 23), rgb(30, 41, 59))",
     };
     root.style.setProperty("--overlay-font-size", fontSizeMap[style.fontSizePreset] || "48px");
     root.style.setProperty("--overlay-align", style.alignment || (profile === "lyrics" ? "left" : "center"));

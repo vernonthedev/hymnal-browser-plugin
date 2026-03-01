@@ -3,7 +3,7 @@
   --overlay-align: center;
   --overlay-safe-margin: 80px;
   --overlay-bg-opacity: 0.55;
-  --overlay-gradient: linear-gradient(135deg, rgba(6, 10, 20, 0.92), rgba(28, 39, 66, 0.78));
+  --overlay-gradient: linear-gradient(135deg, rgb(6, 10, 20), rgb(28, 39, 66));
   --overlay-max-width: 84vw;
   --overlay-y: 0px;
   --overlay-x: 0px;
@@ -48,19 +48,28 @@ body[data-profile="lyrics"] .overlay-shell {
 }
 
 .overlay-card {
+  position: relative;
   display: inline-flex;
   flex-direction: column;
   gap: 10px;
   max-width: var(--overlay-max-width);
   padding: 18px 30px;
+  overflow: hidden;
   border-radius: 22px;
   text-align: var(--overlay-align);
-  background: color-mix(in srgb, transparent calc((1 - var(--overlay-bg-opacity)) * 100%), rgba(5, 8, 15, 1) 100%);
-  background-image: var(--overlay-gradient);
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.42);
   opacity: 0;
   transform: translate3d(var(--overlay-x), calc(36px + var(--overlay-y)), 0);
   transition: opacity 220ms ease, transform 260ms ease;
+}
+
+.overlay-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--overlay-gradient);
+  opacity: var(--overlay-bg-opacity);
+  z-index: 0;
 }
 
 .overlay-card.visible {
@@ -74,6 +83,8 @@ body[data-profile="lyrics"] .overlay-shell {
 }
 
 .speaker {
+  position: relative;
+  z-index: 1;
   display: none;
   font-size: clamp(12px, 1.1vw, 20px);
   font-weight: 700;
@@ -87,6 +98,8 @@ body[data-profile="lyrics"] .overlay-shell {
 }
 
 .text {
+  position: relative;
+  z-index: 1;
   font-size: clamp(24px, var(--overlay-font-size), 88px);
   line-height: 1.2;
   font-weight: 700;
