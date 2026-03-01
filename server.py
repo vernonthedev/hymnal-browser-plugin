@@ -350,9 +350,13 @@ def broadcast(server: WebsocketServer, payload: dict[str, Any], targets: list[di
 
 
 def mark_client_role(app_state: AppState, client_id: int, role: str) -> None:
+    app_state.overlay_clients.pop(client_id, None)
+    app_state.control_client_ids.discard(client_id)
+
     if role == "control":
         app_state.control_client_ids.add(client_id)
         app_state.control_clients = len(app_state.control_client_ids)
+        app_state.connected_clients = len(app_state.overlay_clients)
         return
     app_state.overlay_clients[client_id] = {
         "last_pong": time.time(),
@@ -360,6 +364,7 @@ def mark_client_role(app_state: AppState, client_id: int, role: str) -> None:
         "role": "overlay",
     }
     app_state.connected_clients = len(app_state.overlay_clients)
+    app_state.control_clients = len(app_state.control_client_ids)
 
 
 def start_http_server(app_state: AppState) -> ThreadingTCPServer:
