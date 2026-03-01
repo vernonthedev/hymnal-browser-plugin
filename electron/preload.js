@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld("desktopApi", {
   openExternal: (target) => ipcRenderer.invoke("shell:openExternal", target),
   openPath: (target) => ipcRenderer.invoke("shell:openPath", target),
   getVersion: () => ipcRenderer.invoke("app:getVersion"),
+  minimizeWindow: () => ipcRenderer.invoke("window:minimize"),
+  closeWindow: () => ipcRenderer.invoke("window:close"),
   onBackendEvent: (callback) => {
     const listener = (_event, payload) => callback(payload);
     ipcRenderer.on("backend-event", listener);

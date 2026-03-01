@@ -8,206 +8,345 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">SDA Hymnal Desktop</p>
-          <h1>Control hymns locally. Broadcast overlays by URL.</h1>
-          <p class="hero-copy">
-            The desktop app drives the Python backend, while OBS or vMix keeps
-            loading overlays from localhost.
-          </p>
-        </div>
-        <div class="status-chip">
-          <span id="server-phase" class="phase phase-starting"
-            >Server starting</span
-          >
-          <span id="server-ports">HTTP -, WS -</span>
-        </div>
-      </header>
-
-      <main class="layout">
-        <section class="panel control-panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Control</p>
-              <h2>Hymn navigation</h2>
+      <div class="app-frame">
+        <header class="titlebar">
+          <div class="brand-block">
+            <div class="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 6.75v10.5m0-10.5c-1.243 0-2.25 1.007-2.25 2.25S10.757 11.25 12 11.25s2.25-1.007 2.25-2.25S13.243 6.75 12 6.75Zm0 0V4.5m-4.5 7.5h9m-9 0c0 4.056 2.686 7.5 4.5 7.5s4.5-3.444 4.5-7.5"
+                />
+              </svg>
             </div>
-            <button id="reload-index-btn" class="ghost-btn">
-              Reload hymns index
-            </button>
+            <div>
+              <p class="overline">SDA Hymnal Desktop</p>
+              <h1>Broadcast Control Deck</h1>
+            </div>
           </div>
 
-          <div class="input-row">
-            <label class="field">
-              <span>Hymn number</span>
+          <div class="titlebar-center">
+            <div class="status-card">
+              <span id="server-phase" class="phase phase-starting">Server starting</span>
+              <span id="server-ports" class="status-copy">HTTP -, WS -</span>
+            </div>
+          </div>
+
+          <div class="titlebar-actions">
+            <button id="reload-index-btn" class="icon-btn" type="button">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M16.023 9.348h4.992V4.356m-1.647 3.336a9 9 0 1 0 2.272 5.53"
+                  />
+                </svg>
+              </span>
+              Refresh
+            </button>
+            <button id="open-hymns-btn" class="icon-btn" type="button">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h3.879a2.25 2.25 0 0 0 1.591-.659l.621-.621A2.25 2.25 0 0 1 12.182 7.5H19.5A2.25 2.25 0 0 1 21.75 9.75V12m-19.5.75h19.5m-18.204 0 1.047 5.232A2.25 2.25 0 0 0 6.798 19.5h10.404a2.25 2.25 0 0 0 2.205-1.518l1.047-5.232"
+                  />
+                </svg>
+              </span>
+              Hymns
+            </button>
+            <button id="copy-diagnostics-btn" class="icon-btn" type="button">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15.75 17.25v1.125A2.625 2.625 0 0 1 13.125 21H6.375A2.625 2.625 0 0 1 3.75 18.375V8.625A2.625 2.625 0 0 1 6.375 6h1.125m3.75-3h6.375A2.625 2.625 0 0 1 20.25 5.625v9.75A2.625 2.625 0 0 1 17.625 18h-6.75a2.625 2.625 0 0 1-2.625-2.625v-9.75A2.625 2.625 0 0 1 10.875 3Z"
+                  />
+                </svg>
+              </span>
+              Diagnostics
+            </button>
+            <button id="window-minimize-btn" class="window-btn" type="button" aria-label="Minimize window">
+              <span></span>
+            </button>
+            <button id="window-close-btn" class="window-btn window-btn-close" type="button" aria-label="Close window">
+              <span></span>
+            </button>
+          </div>
+        </header>
+
+        <main class="workspace">
+          <section class="panel finder-panel">
+            <div class="panel-title-row">
+              <div>
+                <p class="overline">Main Feature</p>
+                <h2>Find a hymn fast</h2>
+              </div>
+              <span class="badge">Numeric search</span>
+            </div>
+
+            <label class="finder-input-wrap" for="hymn-input">
+              <span class="icon finder-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="m21 21-4.35-4.35m1.35-5.4a6.75 6.75 0 1 1-13.5 0 6.75 6.75 0 0 1 13.5 0Z"
+                  />
+                </svg>
+              </span>
               <input
                 id="hymn-input"
                 list="hymn-options"
-                placeholder="Type hymn number"
+                inputmode="numeric"
+                autocomplete="off"
+                placeholder="Search hymn number or title"
               />
+              <button id="load-btn" class="primary-btn" type="button">Load Hymn</button>
               <datalist id="hymn-options"></datalist>
             </label>
-            <button id="load-btn" class="primary-btn">Load</button>
-          </div>
 
-          <div class="button-grid">
-            <button id="prev-btn">Prev</button>
-            <button id="next-btn" class="primary-btn">Next</button>
-            <button id="reset-btn">Reset</button>
-            <button id="blank-btn">Blank</button>
-            <button id="show-btn">Show</button>
-            <button id="retrigger-btn">Retrigger</button>
-          </div>
+            <div class="finder-meta">
+              <div class="spotlight-card">
+                <p class="spotlight-label">Selection</p>
+                <strong id="finder-selection-number">No hymn selected</strong>
+                <p id="finder-selection-preview" class="spotlight-copy">
+                  Type a number to pull matching hymns into the quick rail.
+                </p>
+              </div>
+              <div class="shortcut-ribbon">
+                <span><kbd>Enter</kbd> Load</span>
+                <span><kbd>Space</kbd> Next</span>
+                <span><kbd>Left</kbd> Prev</span>
+                <span><kbd>B</kbd> Blank</span>
+              </div>
+            </div>
 
-          <div class="shortcut-list">
-            <span><kbd>Enter</kbd> Load</span>
-            <span><kbd>Space</kbd> / <kbd>Right</kbd> Next</span>
-            <span><kbd>Left</kbd> Prev</span>
-            <span><kbd>R</kbd> Reset</span>
-            <span><kbd>B</kbd> Blank</span>
-          </div>
-        </section>
+            <div id="hymn-search-popover" class="finder-popover" aria-live="polite">
+              <div class="finder-popover-header">
+                <p class="spotlight-label">Search results</p>
+                <span id="finder-results-count" class="finder-results-count">0 hymns</span>
+              </div>
+              <div id="hymn-search-results" class="finder-results" role="listbox"></div>
+            </div>
 
-        <section class="panel preview-panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Preview</p>
-              <h2>Current line</h2>
+            <div class="control-cluster">
+              <button id="prev-btn" class="control-btn" type="button">
+                <span class="icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 19.5-7.5-7.5 7.5-7.5" />
+                  </svg>
+                </span>
+                Prev
+              </button>
+              <button id="next-btn" class="control-btn control-btn-primary" type="button">
+                <span class="icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                  </svg>
+                </span>
+                Next
+              </button>
+              <button id="reset-btn" class="control-btn" type="button">
+                <span class="icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M16.023 9.348h4.992V4.356m-1.647 3.336a9 9 0 1 0 2.272 5.53"
+                    />
+                  </svg>
+                </span>
+                Reset
+              </button>
+              <button id="blank-btn" class="control-btn" type="button">
+                <span class="icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M3.75 7.5A2.25 2.25 0 0 1 6 5.25h12A2.25 2.25 0 0 1 20.25 7.5v9A2.25 2.25 0 0 1 18 18.75H6a2.25 2.25 0 0 1-2.25-2.25v-9Z"
+                    />
+                  </svg>
+                </span>
+                Blank
+              </button>
+              <button id="show-btn" class="control-btn" type="button">
+                <span class="icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.437 0 .644C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178Z"
+                    />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                </span>
+                Show
+              </button>
+              <button id="retrigger-btn" class="control-btn" type="button">
+                <span class="icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M4.5 12a7.5 7.5 0 0 0 12.52 5.558M19.5 12A7.5 7.5 0 0 0 6.98 6.442M17.25 20.25v-2.625A2.625 2.625 0 0 0 14.625 15h-2.25A2.625 2.625 0 0 0 9.75 17.625v2.625M6.75 3.75v2.625A2.625 2.625 0 0 0 9.375 9h2.25a2.625 2.625 0 0 0 2.625-2.625V3.75"
+                    />
+                  </svg>
+                </span>
+                Retrigger
+              </button>
             </div>
-            <button id="copy-diagnostics-btn" class="ghost-btn">
-              Copy diagnostics
-            </button>
-          </div>
-          <div class="preview-stack">
-            <div class="preview-box muted">
-              <span class="preview-label">Previous</span>
-              <p id="prev-line-preview">-</p>
-            </div>
-            <div class="preview-box current">
-              <span class="preview-label">Live</span>
-              <p id="current-line-preview">Waiting for backend</p>
-            </div>
-            <div class="preview-box muted">
-              <span class="preview-label">Next</span>
-              <p id="next-line-preview">-</p>
-            </div>
-          </div>
-          <div class="meta-grid">
-            <div>
-              <span>Current hymn</span><strong id="current-hymn">-</strong>
-            </div>
-            <div><span>Line</span><strong id="line-meta">-</strong></div>
-            <div>
-              <span>Overlays</span><strong id="overlay-count">0</strong>
-            </div>
-            <div>
-              <span>Visibility</span><strong id="visibility-meta">Shown</strong>
-            </div>
-          </div>
-        </section>
+          </section>
 
-        <section class="panel url-panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Overlays</p>
-              <h2>Browser source URLs</h2>
+          <section class="panel preview-panel">
+            <div class="panel-title-row">
+              <div>
+                <p class="overline">Live Preview</p>
+                <h2>Current lyric stack</h2>
+              </div>
+              <div class="live-indicator">
+                <span class="live-dot"></span>
+                Live Output
+              </div>
             </div>
-            <button id="open-hymns-btn" class="ghost-btn">
-              Open hymns folder
-            </button>
-          </div>
-          <div id="overlay-url-list" class="url-list"></div>
-        </section>
 
-        <section class="panel style-panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Theme</p>
-              <h2>Live style controls</h2>
+            <div class="preview-stack">
+              <article class="preview-card preview-card-muted">
+                <span class="preview-chip">Previous</span>
+                <p id="prev-line-preview">-</p>
+              </article>
+              <article class="preview-card preview-card-current">
+                <span class="preview-chip">On Screen</span>
+                <p id="current-line-preview">Waiting for backend</p>
+              </article>
+              <article class="preview-card preview-card-muted">
+                <span class="preview-chip">Next</span>
+                <p id="next-line-preview">-</p>
+              </article>
             </div>
-          </div>
-          <div class="style-grid">
-            <label class="field">
-              <span>Speaker template</span>
-              <select id="speaker-template-select">
-                <option value="">Custom</option>
-                <option value="Sabbath School">Sabbath School</option>
-                <option value="Divine Service">Divine Service</option>
-                <option value="Opening Hymn">Opening Hymn</option>
-                <option value="Closing Hymn">Closing Hymn</option>
-                <option value="Scripture Reading">Scripture Reading</option>
-                <option value="Children's Story">Children's Story</option>
-                <option value="Special Music">Special Music</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Font size</span>
-              <select id="font-size-select">
-                <option value="sm">Small</option>
-                <option value="md" selected>Medium</option>
-                <option value="lg">Large</option>
-                <option value="xl">XL</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Alignment</span>
-              <select id="alignment-select">
-                <option value="left">Left</option>
-                <option value="center" selected>Center</option>
-                <option value="right">Right</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Animation</span>
-              <select id="animation-select">
-                <option value="slide">Slide</option>
-                <option value="fade">Fade</option>
-                <option value="pop" selected>Pop</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Safe margin</span>
-              <input
-                id="safe-margin-input"
-                type="range"
-                min="40"
-                max="160"
-                value="80"
-              />
-            </label>
-            <label class="field full">
-              <span>Speaker label</span>
-              <input id="speaker-input" placeholder="Optional label" />
-            </label>
-          </div>
-          <div class="preset-row">
-            <label class="field">
-              <span>Preset</span>
-              <select id="preset-select"></select>
-            </label>
-            <label class="field">
-              <span>Save as</span>
-              <input id="preset-name-input" placeholder="Main service" />
-            </label>
-            <button id="apply-preset-btn">Apply preset</button>
-            <button id="save-preset-btn" class="primary-btn">
-              Save preset
-            </button>
-          </div>
-        </section>
 
-        <section class="panel diagnostics-panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Diagnostics</p>
-              <h2>Backend events</h2>
+            <div class="meta-grid">
+              <div class="meta-card">
+                <span>Current hymn</span>
+                <strong id="current-hymn">-</strong>
+              </div>
+              <div class="meta-card">
+                <span>Line</span>
+                <strong id="line-meta">-</strong>
+              </div>
+              <div class="meta-card">
+                <span>Overlays</span>
+                <strong id="overlay-count">0</strong>
+              </div>
+              <div class="meta-card">
+                <span>Visibility</span>
+                <strong id="visibility-meta">Shown</strong>
+              </div>
             </div>
-          </div>
-          <pre id="log-output" class="log-output">
-Waiting for backend logs...</pre
-          >
-        </section>
-      </main>
+
+            <div class="log-card">
+              <div class="panel-title-row panel-title-row-tight">
+                <div>
+                  <p class="overline">Diagnostics</p>
+                  <h3>Recent backend events</h3>
+                </div>
+              </div>
+              <pre id="log-output" class="log-output">Waiting for backend logs...</pre>
+            </div>
+          </section>
+
+          <aside class="panel utility-panel">
+            <section class="utility-block utility-block-overlays">
+              <div class="panel-title-row panel-title-row-tight">
+                <div>
+                  <p class="overline">Overlay Links</p>
+                  <h3>Browser sources</h3>
+                </div>
+              </div>
+              <div class="utility-block-body scroll-area">
+                <div id="overlay-url-list" class="url-list"></div>
+              </div>
+            </section>
+
+            <section class="utility-block utility-block-theme">
+              <div class="panel-title-row panel-title-row-tight">
+                <div>
+                  <p class="overline">Theme Control</p>
+                  <h3>Live styling</h3>
+                </div>
+              </div>
+              <div class="utility-block-body scroll-area">
+                <div class="style-grid">
+                  <label class="field">
+                    <span>Template</span>
+                    <select id="speaker-template-select">
+                      <option value="">Custom</option>
+                      <option value="Sabbath School">Sabbath School</option>
+                      <option value="Divine Service">Divine Service</option>
+                      <option value="Opening Hymn">Opening Hymn</option>
+                      <option value="Closing Hymn">Closing Hymn</option>
+                      <option value="Scripture Reading">Scripture Reading</option>
+                      <option value="Children's Story">Children's Story</option>
+                      <option value="Special Music">Special Music</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Font size</span>
+                    <select id="font-size-select">
+                      <option value="sm">Small</option>
+                      <option value="md" selected>Medium</option>
+                      <option value="lg">Large</option>
+                      <option value="xl">XL</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Alignment</span>
+                    <select id="alignment-select">
+                      <option value="left">Left</option>
+                      <option value="center" selected>Center</option>
+                      <option value="right">Right</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Animation</span>
+                    <select id="animation-select">
+                      <option value="slide">Slide</option>
+                      <option value="fade">Fade</option>
+                      <option value="pop" selected>Pop</option>
+                    </select>
+                  </label>
+                  <label class="field field-full">
+                    <span>Speaker label</span>
+                    <input id="speaker-input" placeholder="Optional label" />
+                  </label>
+                  <label class="field field-full">
+                    <span>Safe margin</span>
+                    <input id="safe-margin-input" type="range" min="40" max="160" value="80" />
+                  </label>
+                </div>
+
+                <div class="preset-grid">
+                  <label class="field">
+                    <span>Preset</span>
+                    <select id="preset-select"></select>
+                  </label>
+                  <label class="field">
+                    <span>Save as</span>
+                    <input id="preset-name-input" placeholder="Main service" />
+                  </label>
+                  <button id="apply-preset-btn" class="secondary-btn" type="button">Apply</button>
+                  <button id="save-preset-btn" class="primary-btn" type="button">Save</button>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </main>
+      </div>
 
       <div id="toast-region" class="toast-region"></div>
     </div>

@@ -1,3 +1,6 @@
+const MAX_LOG_LINES = 9;
+const MAX_FINDER_RESULTS = 6;
+
 const state = {
   runtime: null,
   status: null,
@@ -7,6 +10,7 @@ const state = {
   appVersion: "0.0.0",
   reconnectTimer: null,
   styleUpdateTimer: null,
+  logLines: [],
 };
 
 const elements = {
@@ -14,6 +18,11 @@ const elements = {
   serverPorts: document.getElementById("server-ports"),
   hymnInput: document.getElementById("hymn-input"),
   hymnOptions: document.getElementById("hymn-options"),
+  hymnSearchResults: document.getElementById("hymn-search-results"),
+  hymnSearchPopover: document.getElementById("hymn-search-popover"),
+  finderResultsCount: document.getElementById("finder-results-count"),
+  finderSelectionNumber: document.getElementById("finder-selection-number"),
+  finderSelectionPreview: document.getElementById("finder-selection-preview"),
   loadBtn: document.getElementById("load-btn"),
   prevBtn: document.getElementById("prev-btn"),
   nextBtn: document.getElementById("next-btn"),
@@ -22,6 +31,8 @@ const elements = {
   showBtn: document.getElementById("show-btn"),
   retriggerBtn: document.getElementById("retrigger-btn"),
   reloadIndexBtn: document.getElementById("reload-index-btn"),
+  windowMinimizeBtn: document.getElementById("window-minimize-btn"),
+  windowCloseBtn: document.getElementById("window-close-btn"),
   prevLinePreview: document.getElementById("prev-line-preview"),
   currentLinePreview: document.getElementById("current-line-preview"),
   nextLinePreview: document.getElementById("next-line-preview"),
@@ -46,10 +57,16 @@ const elements = {
   savePresetBtn: document.getElementById("save-preset-btn"),
 };
 
+function renderLogs() {
+  elements.logOutput.textContent = state.logLines.length
+    ? state.logLines.join("\n")
+    : "Waiting for backend logs...";
+}
+
 function appendLog(message) {
   const line = `[${new Date().toLocaleTimeString()}] ${message}`;
-  elements.logOutput.textContent =
-    `${line}\n${elements.logOutput.textContent}`.trim();
+  state.logLines = [line, ...state.logLines].slice(0, MAX_LOG_LINES);
+  renderLogs();
 }
 
 function showToast(message, level = "info") {
@@ -65,9 +82,25 @@ function setLifecycle(phase, message) {
   elements.serverPhase.className = `phase phase-${phase}`;
 }
 
+function createIcon(iconName) {
+  if (iconName === "copy") {
+    return `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v1.125A2.625 2.625 0 0 1 13.125 21H6.375A2.625 2.625 0 0 1 3.75 18.375V8.625A2.625 2.625 0 0 1 6.375 6h1.125m3.75-3h6.375A2.625 2.625 0 0 1 20.25 5.625v9.75A2.625 2.625 0 0 1 17.625 18h-6.75a2.625 2.625 0 0 1-2.625-2.625v-9.75A2.625 2.625 0 0 1 10.875 3Z" />
+      </svg>
+    `;
+  }
+
+  return `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-6.75-4.5L21 3m0 0-3 9m3-9h-9" />
+    </svg>
+  `;
+}
+
 function renderOverlayUrls() {
   if (!state.runtime) {
-    elements.overlayUrlList.innerHTML = "<p>Waiting for runtime details...</p>";
+    elements.overlayUrlList.innerHTML = "<p class=\"result-preview\">Waiting for runtime details...</p>";
     return;
   }
 
@@ -76,14 +109,21 @@ function renderOverlayUrls() {
     const card = document.createElement("div");
     card.className = "url-card";
     card.innerHTML = `
-      <div>
+      <div class="url-card-title">
         <strong>${overlay.name}</strong>
-        <p>${overlay.path}</p>
+        <span class="badge">${overlay.path.replace("/", "")}</span>
       </div>
-      <code>${overlay.url}</code>
+      <p>${overlay.path}</p>
+      <code title="${overlay.url}">${overlay.url}</code>
       <div class="url-actions">
-        <button data-action="copy">Copy URL</button>
-        <button data-action="open" class="primary-btn">Open in browser</button>
+        <button data-action="copy" type="button">
+          <span class="icon" aria-hidden="true">${createIcon("copy")}</span>
+          Copy
+        </button>
+        <button data-action="open" class="primary-btn" type="button">
+          <span class="icon" aria-hidden="true">${createIcon("open")}</span>
+          Open
+        </button>
       </div>
     `;
     const [copyBtn, openBtn] = card.querySelectorAll("button");
@@ -139,6 +179,108 @@ function syncStyleForm(style = {}) {
   }
 }
 
+function normalizeText(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function getMatchingHymns(query) {
+  const normalizedQuery = normalizeText(query);
+  if (!normalizedQuery) {
+    return state.hymnIndex.slice(0, MAX_FINDER_RESULTS);
+  }
+
+  return state.hymnIndex
+    .filter((item) => {
+      const number = normalizeText(item.number);
+      const preview = normalizeText(item.preview);
+      return number.startsWith(normalizedQuery) || preview.includes(normalizedQuery);
+    })
+    .slice(0, MAX_FINDER_RESULTS);
+}
+
+function getSelectedHymn() {
+  const typed = normalizeText(elements.hymnInput.value);
+  if (typed) {
+    const exactMatch = state.hymnIndex.find(
+      (item) => normalizeText(item.number) === typed || normalizeText(item.preview) === typed,
+    );
+    if (exactMatch) {
+      return exactMatch;
+    }
+
+    const firstMatch = getMatchingHymns(typed)[0];
+    if (firstMatch) {
+      return firstMatch;
+    }
+  }
+
+  if (state.status?.current_hymn) {
+    return state.hymnIndex.find(
+      (item) => normalizeText(item.number) === normalizeText(state.status.current_hymn),
+    );
+  }
+
+  return null;
+}
+
+function renderFinderSpotlight() {
+  const selectedHymn = getSelectedHymn();
+
+  if (!selectedHymn) {
+    elements.finderSelectionNumber.textContent = "No hymn selected";
+    elements.finderSelectionPreview.textContent =
+      "Type a number to pull matching hymns into the quick rail.";
+    return;
+  }
+
+  elements.finderSelectionNumber.textContent = `Hymn ${selectedHymn.number}`;
+  elements.finderSelectionPreview.textContent = selectedHymn.preview || "Ready to load.";
+}
+
+function renderFinderResults() {
+  const results = getMatchingHymns(elements.hymnInput.value);
+  const activeNumber = getSelectedHymn()?.number;
+  elements.finderResultsCount.textContent = `${results.length} hymn${results.length === 1 ? "" : "s"}`;
+
+  elements.hymnSearchResults.innerHTML = "";
+
+  for (const hymn of results) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "result-card";
+    if (hymn.number === activeNumber) {
+      button.classList.add("is-active");
+    }
+    button.innerHTML = `
+      <span class="result-number">#${hymn.number}</span>
+      <div class="result-main">
+        <span class="result-title">Hymn ${hymn.number}</span>
+        <p class="result-preview">${hymn.preview || "No preview available."}</p>
+      </div>
+      <span class="result-action">Select</span>
+    `;
+    button.addEventListener("click", () => {
+      elements.hymnInput.value = hymn.number;
+      renderFinderSpotlight();
+      renderFinderResults();
+    });
+    button.addEventListener("dblclick", () => {
+      elements.hymnInput.value = hymn.number;
+      sendCommand({ cmd: "load", hymn: hymn.number });
+    });
+    elements.hymnSearchResults.appendChild(button);
+  }
+
+  if (!results.length) {
+    elements.hymnSearchResults.innerHTML = `
+      <div class="spotlight-card">
+        <p class="spotlight-label">No matches</p>
+        <p class="spotlight-copy">Try another hymn number or title fragment.</p>
+      </div>
+    `;
+  }
+}
+
 function renderStatus() {
   const status = state.status;
   if (!status) {
@@ -161,15 +303,16 @@ function renderStatus() {
     state.presets = status.presets;
     renderPresets();
   }
+
+  renderFinderSpotlight();
+  renderFinderResults();
 }
 
 async function fetchJson(route) {
   if (!state.runtime) {
     throw new Error("Runtime is not available yet.");
   }
-  const response = await fetch(
-    `http://127.0.0.1:${state.runtime.httpPort}${route}`,
-  );
+  const response = await fetch(`http://127.0.0.1:${state.runtime.httpPort}${route}`);
   if (!response.ok) {
     throw new Error(`Request failed for ${route}`);
   }
@@ -181,6 +324,9 @@ async function refreshIndexes() {
     const hymnPayload = await fetchJson("/hymns");
     state.hymnIndex = hymnPayload.items || [];
     renderHymnOptions();
+    renderFinderSpotlight();
+    renderFinderResults();
+
     const presetPayload = await fetchJson("/presets");
     state.presets = presetPayload.items || {};
     renderPresets();
@@ -225,6 +371,8 @@ function connectSocket() {
     if (payload.type === "hymn_index") {
       state.hymnIndex = payload.items || [];
       renderHymnOptions();
+      renderFinderSpotlight();
+      renderFinderResults();
       return;
     }
     if (payload.type === "presets") {
@@ -269,27 +417,19 @@ function bindEvents() {
   elements.loadBtn.addEventListener("click", () => {
     sendCommand({ cmd: "load", hymn: elements.hymnInput.value.trim() });
   });
-  elements.prevBtn.addEventListener("click", () =>
-    sendCommand({ cmd: "prev" }),
-  );
-  elements.nextBtn.addEventListener("click", () =>
-    sendCommand({ cmd: "next" }),
-  );
-  elements.resetBtn.addEventListener("click", () =>
-    sendCommand({ cmd: "reset" }),
-  );
-  elements.blankBtn.addEventListener("click", () =>
-    sendCommand({ cmd: "blank" }),
-  );
-  elements.showBtn.addEventListener("click", () =>
-    sendCommand({ cmd: "show" }),
-  );
-  elements.retriggerBtn.addEventListener("click", () =>
-    sendCommand({ cmd: "retrigger" }),
-  );
-  elements.reloadIndexBtn.addEventListener("click", () =>
-    sendCommand({ cmd: "reload_hymns" }),
-  );
+  elements.prevBtn.addEventListener("click", () => sendCommand({ cmd: "prev" }));
+  elements.nextBtn.addEventListener("click", () => sendCommand({ cmd: "next" }));
+  elements.resetBtn.addEventListener("click", () => sendCommand({ cmd: "reset" }));
+  elements.blankBtn.addEventListener("click", () => sendCommand({ cmd: "blank" }));
+  elements.showBtn.addEventListener("click", () => sendCommand({ cmd: "show" }));
+  elements.retriggerBtn.addEventListener("click", () => sendCommand({ cmd: "retrigger" }));
+  elements.reloadIndexBtn.addEventListener("click", () => sendCommand({ cmd: "reload_hymns" }));
+  elements.windowMinimizeBtn.addEventListener("click", async () => {
+    await window.desktopApi.minimizeWindow();
+  });
+  elements.windowCloseBtn.addEventListener("click", async () => {
+    await window.desktopApi.closeWindow();
+  });
   elements.copyDiagnosticsBtn.addEventListener("click", copyDiagnostics);
   elements.openHymnsBtn.addEventListener("click", async () => {
     if (state.runtime?.hymnsDir) {
@@ -302,16 +442,13 @@ function bindEvents() {
     queueStyleUpdate();
   });
 
-  [
-    elements.fontSize,
-    elements.alignment,
-    elements.animation,
-    elements.safeMargin,
-  ].forEach((input) => {
-    input.addEventListener("change", () => {
-      queueStyleUpdate();
-    });
-  });
+  [elements.fontSize, elements.alignment, elements.animation, elements.safeMargin].forEach(
+    (input) => {
+      input.addEventListener("change", () => {
+        queueStyleUpdate();
+      });
+    },
+  );
 
   [elements.speaker].forEach((input) => {
     input.addEventListener("input", queueStyleUpdate);
@@ -331,6 +468,11 @@ function bindEvents() {
     sendCommand({ cmd: "update_style", style: buildStylePayload() });
     sendCommand({ cmd: "save_preset", name });
     elements.presetName.value = "";
+  });
+
+  elements.hymnInput.addEventListener("input", () => {
+    renderFinderSpotlight();
+    renderFinderResults();
   });
 
   elements.hymnInput.addEventListener("keydown", (event) => {
@@ -369,6 +511,7 @@ function bindEvents() {
 
 async function init() {
   bindEvents();
+  renderFinderResults();
   state.appVersion = await window.desktopApi.getVersion();
   const runtime = await window.desktopApi.getRuntime();
   if (runtime) {

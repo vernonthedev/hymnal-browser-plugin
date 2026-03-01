@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, clipboard } = require("electron");
+const { app, BrowserWindow, ipcMain, shell, clipboard, Menu } = require("electron");
 const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
@@ -348,11 +348,18 @@ function stopBackend() {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 980,
+    width: 1180,
+    height: 760,
     minWidth: 1180,
-    minHeight: 820,
-    backgroundColor: "#f5f1e8",
+    minHeight: 760,
+    maxWidth: 1180,
+    maxHeight: 760,
+    resizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    frame: false,
+    titleBarStyle: "hidden",
+    backgroundColor: "#0a0c10",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -377,8 +384,21 @@ ipcMain.handle("shell:openPath", async (_event, target) => {
   return true;
 });
 ipcMain.handle("app:getVersion", async () => app.getVersion());
+ipcMain.handle("window:minimize", async () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.minimize();
+  }
+  return true;
+});
+ipcMain.handle("window:close", async () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.close();
+  }
+  return true;
+});
 
 app.whenReady().then(async () => {
+  Menu.setApplicationMenu(null);
   createWindow();
   await startBackend();
 });
