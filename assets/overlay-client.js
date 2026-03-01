@@ -132,7 +132,12 @@
       return;
     }
 
-    if (payload.type === "state" || payload.type === "visibility" || payload.type === "style") {
+    if (
+      payload.type === "state" ||
+      payload.type === "visibility" ||
+      payload.type === "style" ||
+      payload.type === "background"
+    ) {
       renderState(payload, payload.type !== "style");
       showStatus("");
       return;

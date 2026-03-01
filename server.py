@@ -474,7 +474,7 @@ def start_websocket_server(app_state: AppState) -> WebsocketServer:
             return
 
         if payload:
-            if payload.get("type") in {"state", "visibility", "retrigger", "style"}:
+            if payload.get("type") in {"state", "visibility", "retrigger", "style", "background"}:
                 authorized_overlays = [
                     overlay_client
                     for overlay_client in server.clients
