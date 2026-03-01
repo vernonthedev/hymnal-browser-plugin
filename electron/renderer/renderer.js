@@ -39,7 +39,11 @@ const elements = {
   alignment: document.getElementById("alignment-select"),
   animation: document.getElementById("animation-select"),
   gradient: document.getElementById("gradient-select"),
-  backgroundVisibility: document.getElementById("background-visibility-select"),
+  showBackgroundBtn: document.getElementById("show-background-btn"),
+  removeBackgroundBtn: document.getElementById("remove-background-btn"),
+  backgroundStateText: document.getElementById("background-state-text"),
+  backgroundMode: document.getElementById("background-mode-select"),
+  textShadow: document.getElementById("text-shadow-select"),
   safeMargin: document.getElementById("safe-margin-input"),
   opacity: document.getElementById("opacity-input"),
   speaker: document.getElementById("speaker-input"),
@@ -51,7 +55,8 @@ const elements = {
 
 function appendLog(message) {
   const line = `[${new Date().toLocaleTimeString()}] ${message}`;
-  elements.logOutput.textContent = `${line}\n${elements.logOutput.textContent}`.trim();
+  elements.logOutput.textContent =
+    `${line}\n${elements.logOutput.textContent}`.trim();
 }
 
 function showToast(message, level = "info") {
@@ -145,6 +150,12 @@ function syncStyleForm(style = {}) {
   if (document.activeElement !== elements.speakerTemplate) {
     elements.speakerTemplate.value = style.speakerLabel || "";
   }
+  if (document.activeElement !== elements.backgroundMode) {
+    elements.backgroundMode.value = style.backgroundMode || "solid";
+  }
+  if (document.activeElement !== elements.textShadow) {
+    elements.textShadow.value = style.forceTextShadow === true ? "on" : "off";
+  }
 }
 
 function renderStatus() {
@@ -155,15 +166,20 @@ function renderStatus() {
 
   elements.serverPorts.textContent = `HTTP ${status.http_port}, WS ${status.ws_port}`;
   elements.currentHymn.textContent = status.current_hymn || "-";
-  elements.lineMeta.textContent = status.total_lines ? `${status.line_index + 1}/${status.total_lines}` : "0/0";
+  elements.lineMeta.textContent = status.total_lines
+    ? `${status.line_index + 1}/${status.total_lines}`
+    : "0/0";
   elements.overlayCount.textContent = String(status.connected_clients || 0);
   elements.visibilityMeta.textContent = status.visible ? "Shown" : "Blank";
   elements.currentLinePreview.textContent = status.text || "(No text)";
   elements.prevLinePreview.textContent = status.previous_text || "-";
   elements.nextLinePreview.textContent = status.next_text || "-";
-  if (document.activeElement !== elements.backgroundVisibility) {
-    elements.backgroundVisibility.value = status.show_background === false ? "off" : "on";
-  }
+  const backgroundShown = status.show_background !== false;
+  elements.backgroundStateText.textContent = backgroundShown
+    ? "Background is currently shown."
+    : "Background is currently removed.";
+  elements.showBackgroundBtn.classList.toggle("primary-btn", backgroundShown);
+  elements.removeBackgroundBtn.classList.toggle("primary-btn", !backgroundShown);
   syncStyleForm(status.style || {});
 
   if (status.presets) {
@@ -176,7 +192,9 @@ async function fetchJson(route) {
   if (!state.runtime) {
     throw new Error("Runtime is not available yet.");
   }
-  const response = await fetch(`http://127.0.0.1:${state.runtime.httpPort}${route}`);
+  const response = await fetch(
+    `http://127.0.0.1:${state.runtime.httpPort}${route}`,
+  );
   if (!response.ok) {
     throw new Error(`Request failed for ${route}`);
   }
@@ -250,6 +268,8 @@ function buildStylePayload() {
     alignment: elements.alignment.value,
     animation: elements.animation.value,
     backgroundGradient: elements.gradient.value,
+    backgroundMode: elements.backgroundMode.value,
+    forceTextShadow: elements.textShadow.value === "on",
     safeMargin: Number(elements.safeMargin.value),
     backgroundOpacity: Number(elements.opacity.value),
     speakerLabel: elements.speaker.value.trim(),
@@ -278,13 +298,27 @@ function bindEvents() {
   elements.loadBtn.addEventListener("click", () => {
     sendCommand({ cmd: "load", hymn: elements.hymnInput.value.trim() });
   });
-  elements.prevBtn.addEventListener("click", () => sendCommand({ cmd: "prev" }));
-  elements.nextBtn.addEventListener("click", () => sendCommand({ cmd: "next" }));
-  elements.resetBtn.addEventListener("click", () => sendCommand({ cmd: "reset" }));
-  elements.blankBtn.addEventListener("click", () => sendCommand({ cmd: "blank" }));
-  elements.showBtn.addEventListener("click", () => sendCommand({ cmd: "show" }));
-  elements.retriggerBtn.addEventListener("click", () => sendCommand({ cmd: "retrigger" }));
-  elements.reloadIndexBtn.addEventListener("click", () => sendCommand({ cmd: "reload_hymns" }));
+  elements.prevBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "prev" }),
+  );
+  elements.nextBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "next" }),
+  );
+  elements.resetBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "reset" }),
+  );
+  elements.blankBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "blank" }),
+  );
+  elements.showBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "show" }),
+  );
+  elements.retriggerBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "retrigger" }),
+  );
+  elements.reloadIndexBtn.addEventListener("click", () =>
+    sendCommand({ cmd: "reload_hymns" }),
+  );
   elements.copyDiagnosticsBtn.addEventListener("click", copyDiagnostics);
   elements.openHymnsBtn.addEventListener("click", async () => {
     if (state.runtime?.hymnsDir) {
@@ -297,8 +331,12 @@ function bindEvents() {
     queueStyleUpdate();
   });
 
-  elements.backgroundVisibility.addEventListener("change", () => {
-    sendCommand({ cmd: "set_background", enabled: elements.backgroundVisibility.value !== "off" });
+  elements.showBackgroundBtn.addEventListener("click", () => {
+    sendCommand({ cmd: "set_background", enabled: true });
+  });
+
+  elements.removeBackgroundBtn.addEventListener("click", () => {
+    sendCommand({ cmd: "set_background", enabled: false });
   });
 
   [
@@ -306,6 +344,8 @@ function bindEvents() {
     elements.alignment,
     elements.animation,
     elements.gradient,
+    elements.backgroundMode,
+    elements.textShadow,
     elements.safeMargin,
   ].forEach((input) => {
     input.addEventListener("change", () => {
@@ -341,7 +381,10 @@ function bindEvents() {
   });
 
   window.addEventListener("keydown", (event) => {
-    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) {
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLSelectElement
+    ) {
       return;
     }
     if (event.key === "ArrowRight" || event.key === " ") {
