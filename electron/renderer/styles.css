@@ -2,18 +2,18 @@
 
 :root {
   color-scheme: light;
-  --bg: #f5f1ea;
-  --surface: #fffdf9;
-  --surface-soft: #f2ece3;
-  --surface-muted: #eae2d7;
-  --text: #1f2630;
-  --muted: #6f7886;
-  --line: rgba(51, 60, 73, 0.08);
-  --accent: #b98545;
-  --accent-strong: #9e6e34;
-  --success: #1f8a5b;
-  --warning: #c4871e;
-  --error: #cc5c6d;
+  --bg: #ece5d9;
+  --surface: #fffaf2;
+  --surface-soft: #f2e7d8;
+  --surface-muted: #e6d7c3;
+  --text: #1f2830;
+  --muted: #6f756f;
+  --line: rgba(69, 58, 40, 0.1);
+  --accent: #0f766e;
+  --accent-strong: #115e59;
+  --success: #0f766e;
+  --warning: #b87a1d;
+  --error: #c05b6c;
   --radius-xl: 28px;
   --radius-lg: 20px;
   --radius-md: 16px;
@@ -33,9 +33,9 @@ body {
   font-family: "DM Sans", sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at 10% 18%, rgba(185, 133, 69, 0.1), transparent 24%),
-    radial-gradient(circle at 86% 12%, rgba(142, 159, 181, 0.1), transparent 22%),
-    linear-gradient(180deg, #fcfaf6 0%, var(--bg) 100%);
+    radial-gradient(circle at 10% 18%, rgba(15, 118, 110, 0.08), transparent 24%),
+    radial-gradient(circle at 86% 12%, rgba(184, 122, 29, 0.12), transparent 22%),
+    linear-gradient(180deg, #f9f4eb 0%, var(--bg) 100%);
 }
 
 body::before {
@@ -73,8 +73,8 @@ button {
   height: 100%;
   padding: 14px;
   border-radius: 30px;
-  background: rgba(255, 250, 244, 0.76);
-  border: 1px solid rgba(255, 255, 255, 0.62);
+  background: rgba(249, 242, 232, 0.82);
+  border: 1px solid rgba(255, 250, 242, 0.7);
   backdrop-filter: blur(24px);
   overflow: hidden;
 }
@@ -131,7 +131,7 @@ label {
   min-width: 180px;
   padding: 10px 14px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.74);
+  background: rgba(255, 248, 239, 0.84);
   border: 1px solid var(--line);
 }
 
@@ -179,7 +179,11 @@ label {
   align-items: center;
   justify-content: center;
   border-radius: 14px;
-  transition: background 160ms ease, transform 160ms ease, border-color 160ms ease;
+  transition:
+    transform 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    opacity 120ms ease;
 }
 
 .icon {
@@ -207,8 +211,7 @@ label {
 .secondary-btn:hover,
 .control-btn:hover,
 .window-btn:hover {
-  transform: translateY(-1px);
-  background: #ffffff;
+  transform: none;
 }
 
 .icon-btn {
@@ -219,11 +222,11 @@ label {
 .primary-btn {
   color: #ffffff;
   background: linear-gradient(180deg, var(--accent), var(--accent-strong));
-  border: 1px solid rgba(116, 81, 39, 0.12);
+  border: 1px solid rgba(15, 118, 110, 0.18);
 }
 
 .primary-btn:hover {
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .window-btn {
@@ -283,7 +286,7 @@ label {
   min-height: 0;
   padding: 16px;
   border-radius: var(--radius-xl);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(251, 247, 240, 0.72));
+  background: linear-gradient(180deg, rgba(255, 251, 244, 0.92), rgba(245, 236, 223, 0.82));
   border: 1px solid var(--line);
 }
 
@@ -379,9 +382,9 @@ label {
 
 .section-note,
 .badge {
-  background: rgba(185, 133, 69, 0.1);
+  background: rgba(15, 118, 110, 0.08);
   color: var(--accent-strong);
-  border-color: rgba(185, 133, 69, 0.12);
+  border-color: rgba(15, 118, 110, 0.12);
 }
 
 .live-dot {
@@ -398,7 +401,7 @@ label {
   gap: 10px;
   padding: 8px;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 249, 241, 0.88);
   border: 1px solid var(--line);
 }
 
@@ -421,7 +424,7 @@ input::placeholder {
 
 input:focus,
 select:focus {
-  border-color: rgba(185, 133, 69, 0.26);
+  border-color: rgba(15, 118, 110, 0.26);
 }
 
 .finder-input-wrap .primary-btn {
@@ -433,7 +436,7 @@ select:focus {
   padding: 12px;
   border-radius: 20px;
   background:
-    radial-gradient(circle at right top, rgba(185, 133, 69, 0.08), transparent 34%),
+    radial-gradient(circle at right top, rgba(15, 118, 110, 0.08), transparent 34%),
     var(--surface);
   border: 1px solid var(--line);
 }
@@ -506,8 +509,8 @@ kbd {
   padding: 10px;
   border-radius: 22px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(250, 245, 237, 0.72)),
-    rgba(255, 250, 244, 0.84);
+    linear-gradient(180deg, rgba(255, 251, 244, 0.92), rgba(243, 234, 220, 0.82)),
+    rgba(255, 249, 240, 0.88);
   border: 1px solid var(--line);
 }
 
@@ -552,8 +555,8 @@ kbd {
 
 .result-card:hover,
 .result-card.is-active {
-  background: #ffffff;
-  border-color: rgba(185, 133, 69, 0.16);
+  background: var(--surface);
+  border-color: rgba(15, 118, 110, 0.16);
 }
 
 .result-number {
@@ -608,7 +611,20 @@ kbd {
 .control-btn-primary {
   color: #ffffff;
   background: linear-gradient(180deg, var(--accent), var(--accent-strong));
-  border: 1px solid rgba(116, 81, 39, 0.12);
+  border: 1px solid rgba(15, 118, 110, 0.18);
+}
+
+.control-btn:active,
+.primary-btn:active,
+.secondary-btn:active,
+.icon-btn:active {
+  transform: translateY(1px) scale(0.995);
+  box-shadow: inset 0 0 0 999px rgba(31, 40, 48, 0.04);
+}
+
+.control-btn-primary:active,
+.primary-btn:active {
+  box-shadow: inset 0 0 0 999px rgba(255, 255, 255, 0.1);
 }
 
 .preview-stage {
@@ -618,7 +634,7 @@ kbd {
   min-height: 0;
   padding: 18px;
   border-radius: 24px;
-  background: linear-gradient(180deg, #ffffff, rgba(244, 236, 226, 0.88));
+  background: linear-gradient(180deg, #fffdf8, rgba(240, 232, 219, 0.92));
   border: 1px solid var(--line);
 }
 
@@ -707,7 +723,7 @@ kbd {
 }
 
 .utility-block-theme {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(245, 238, 229, 0.84));
+  background: linear-gradient(180deg, rgba(255, 249, 240, 0.88), rgba(238, 229, 215, 0.9));
 }
 
 .utility-block-body {
@@ -753,8 +769,8 @@ kbd {
   display: block;
   padding: 10px 11px;
   border-radius: 14px;
-  background: var(--surface-soft);
-  color: #556171;
+  background: rgba(231, 220, 203, 0.88);
+  color: #5e625f;
   font-size: 0.72rem;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -849,7 +865,7 @@ input[type="range"] {
 }
 
 .toast-info {
-  background: rgba(36, 44, 58, 0.92);
+  background: rgba(31, 40, 48, 0.92);
 }
 
 .toast-warning {
