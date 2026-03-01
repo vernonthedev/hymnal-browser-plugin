@@ -18,6 +18,7 @@ let shuttingDown = false;
 let healthTimer = null;
 let backendExitedUnexpectedly = false;
 let restartTimer = null;
+let fatalBackendError = null;
 
 function sendToRenderer(channel, payload) {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -113,14 +114,34 @@ function resolveBackendCommand() {
     return { command: packagedExecutable, args: [] };
   }
 
-  const localLauncher = process.platform === "win32" ? "py" : "python3";
+  const repoRoot = app.isPackaged ? process.resourcesPath : app.getAppPath();
+  const localVenvPython =
+    process.platform === "win32"
+      ? path.join(repoRoot, "env", "Scripts", "python.exe")
+      : path.join(repoRoot, "env", "bin", "python");
+  if (fs.existsSync(localVenvPython)) {
+    return {
+      command: localVenvPython,
+      args: [],
+    };
+  }
+
+  const localLauncher = process.platform === "win32" ? "py" : "python3.12";
   const scriptPath = app.isPackaged
     ? path.join(process.resourcesPath, "app.asar.unpacked", "server.py")
     : path.join(app.getAppPath(), "server.py");
   return {
     command: localLauncher,
-    args: process.platform === "win32" ? ["-3", scriptPath] : [scriptPath],
+    args: process.platform === "win32" ? ["-3.12", scriptPath] : [scriptPath],
   };
+}
+
+function isFatalBackendLine(line) {
+  return (
+    line.includes("ModuleNotFoundError") ||
+    line.includes("ImportError") ||
+    line.includes("No module named")
+  );
 }
 
 function overlayUrlsFromRuntime(info) {
@@ -176,11 +197,12 @@ async function startBackend() {
   const backend = resolveBackendCommand();
   const args = [
     ...backend.args,
+    app.isPackaged ? "" : path.join(app.getAppPath(), "server.py"),
     `--http-port=${httpPort}`,
     `--ws-port=${wsPort}`,
     `--data-dir=${dataDir}`,
     `--token=${config.token}`,
-  ];
+  ].filter(Boolean);
 
   sendToRenderer("backend-event", {
     type: "lifecycle",
@@ -194,6 +216,7 @@ async function startBackend() {
   });
 
   backendExitedUnexpectedly = true;
+  fatalBackendError = null;
 
   monitorBackendOutput(backendProcess.stdout, async (line) => {
     try {
@@ -233,6 +256,10 @@ async function startBackend() {
   });
 
   monitorBackendOutput(backendProcess.stderr, (line) => {
+    if (isFatalBackendLine(line)) {
+      fatalBackendError = line;
+      backendExitedUnexpectedly = false;
+    }
     sendToRenderer("backend-event", {
       type: "log",
       message: line,
@@ -261,6 +288,15 @@ async function startBackend() {
       phase: "stopped",
       message: signal ? `Backend stopped (${signal})` : "Backend stopped",
     });
+    if (fatalBackendError) {
+      sendToRenderer("backend-event", {
+        type: "toast",
+        level: "error",
+        message:
+          "Backend startup failed. Use Python 3.12 and install requirements with env\\Scripts\\python.exe -m pip install -r requirements.txt.",
+      });
+      return;
+    }
     if (backendExitedUnexpectedly) {
       scheduleBackendRestart();
     }
