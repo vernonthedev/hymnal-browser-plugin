@@ -79,4 +79,4 @@ C:\hymnal-browser-plugin\
 > Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 > Please check out the [Contributing Guide](CONTRIBUTING.md) to get started.
 
-Made with love 💖 by @[vernonthedev](https://github.com/vernonthedev)
+Made with love 💖 by @[vernonthedev](https://vernon.skope.au)

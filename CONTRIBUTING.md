@@ -74,4 +74,4 @@ To keep the history clean and manageable, I follow the **[Conventional Commits](
 ---
 
 Thank you for your contributions! 💖
-Made with love 💖 by @[vernonthedev](https://github.com/vernonthedev)
+Made with love 💖 by @[vernonthedev](https://vernon.skope.au)
