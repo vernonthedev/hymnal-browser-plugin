@@ -1,6 +1,6 @@
-# OBS SDA HYMNAL | Lowerthirds Plugin
+# SDA HYMNAL | Lowerthirds Plugin
 
-OBS browser source plugin that that displays lowerthirds for all SDA Hymns.
+OBS & VMIX browser source plugin that displays lowerthirds for all SDA Hymns.
 
 ## Installing dependencies
 
@@ -42,9 +42,9 @@ python server.py # Run the application server
 http://localhost:9999/control/index.html
 ```
 
-## OBS Setup
+## OBS or VMIX Setup
 
-Add Browser Source
+Add New Browser Source
 URL:
 
 ```http
@@ -61,7 +61,7 @@ Size:
 ## Current Directory Structure
 
 ```bash
-C:\obs-pptx-plugin\
+C:\hymnal-browser-plugin\
 │
 ├─ server.py
 ├─ hymns\
