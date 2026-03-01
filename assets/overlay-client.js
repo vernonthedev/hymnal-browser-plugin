@@ -56,9 +56,11 @@
     root.style.setProperty("--overlay-align", style.alignment || (profile === "lyrics" ? "left" : "center"));
     root.style.setProperty("--overlay-safe-margin", `${Number(style.safeMargin || 80)}px`);
     if (style.showBackground === false) {
+      cardEl.classList.add("backgroundless");
       cardEl.style.background = "transparent";
       cardEl.style.boxShadow = "none";
     } else {
+      cardEl.classList.remove("backgroundless");
       const [startColor, endColor] = gradient;
       cardEl.style.background = `linear-gradient(135deg, rgba(${startColor[0]}, ${startColor[1]}, ${startColor[2]}, ${opacity}), rgba(${endColor[0]}, ${endColor[1]}, ${endColor[2]}, ${opacity}))`;
       cardEl.style.boxShadow = "";
