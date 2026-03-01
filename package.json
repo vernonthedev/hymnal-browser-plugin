@@ -14,7 +14,7 @@
     "build:backend": "bun run verify:build-assets && node scripts/build-backend.js",
     "dist": "bun run prepare:dist && bun run verify:build-assets && electron-builder",
     "dist:dir": "bun run prepare:dist && bun run verify:build-assets && electron-builder --dir",
-    "dist:win": "bun run prepare:dist && bun run verify:build-assets && electron-builder --win nsis",
+    "dist:win": "bun run prepare:dist && bun run verify:build-assets && electron-builder --win nsis portable",
     "dist:mac": "bun run prepare:dist && bun run verify:build-assets && electron-builder --mac dmg",
     "dist:linux": "bun run prepare:dist && bun run verify:build-assets && electron-builder --linux AppImage deb"
   },
