@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "sda-hymnal-desktop",
   "version": "2.0.0",
   "description": "Electron desktop controller for the SDA Hymnal lower thirds backend",
@@ -10,12 +11,12 @@
   },
   "license": "MIT",
   "scripts": {
-    "dev": "electron .",
-    "start": "electron .",
+    "dev": "bun run build:backend && electron .",
+    "start": "bun run build:backend && electron .",
     "verify:build-assets": "node scripts/verify-build-assets.js",
     "prepare:dist": "node scripts/prepare-dist.js",
     "build:icons": "node scripts/build-icons.js",
-    "build:backend": "bun run verify:build-assets && node scripts/build-backend.js",
+    "build:backend": "tsc --outDir . --target ES2022 --module ESNext --moduleResolution node",
     "dist": "bun run prepare:dist && bun run verify:build-assets && electron-builder --publish never",
     "dist:dir": "bun run prepare:dist && bun run verify:build-assets && electron-builder --dir --publish never",
     "dist:win": "bun run prepare:dist && bun run verify:build-assets && electron-builder --win nsis portable --publish never",
@@ -104,9 +105,18 @@
       ]
     }
   },
+  "dependencies": {
+    "@elysiajs/cors": "^1.1.1",
+    "@elysiajs/static": "^1.1.1",
+    "elysia": "^1.1.12",
+    "ws": "^8.18.0"
+  },
   "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/ws": "^8.18.1",
     "electron": "^36.2.1",
     "electron-builder": "^26.0.12",
-    "icon-gen": "^3.0.1"
+    "icon-gen": "^3.0.1",
+    "typescript": "^6.0.3"
   }
 }
