@@ -176,12 +176,36 @@ async function choosePort(preferredPort) {
 }
 
 function resolveBackendCommand() {
-  const unpackedRoot = path.join(process.resourcesPath, "backend");
-  const executableName = process.platform === "win32" ? "server.exe" : "server";
-  const packagedExecutable = path.join(unpackedRoot, executableName);
-  if (app.isPackaged && fs.existsSync(packagedExecutable)) {
-    return { command: packagedExecutable, args: [] };
+  const repoRoot = app.isPackaged ? process.resourcesPath : app.getAppPath();
+  const scriptPath = app.isPackaged
+    ? path.join(process.resourcesPath, "app.asar.unpacked", "backend.js")
+    : path.join(app.getAppPath(), "backend.ts");
+
+  // Try bun first, then node
+  const candidates = [
+    { command: "bun", args: ["run", scriptPath] },
+    { command: "node", args: [scriptPath.replace(/\.ts$/, ".js")] },
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      // Simple check if command exists
+      const { spawnSync } = require("child_process");
+      const result = spawnSync(candidate.command, ["--version"], { stdio: "ignore" });
+      if (result.status === 0) {
+        return candidate;
+      }
+    } catch {
+      // Command not found, try next
+    }
   }
+
+  // Fallback to node
+  return {
+    command: "node",
+    args: [scriptPath.replace(/\.ts$/, ".js")],
+  };
+}
 
   const repoRoot = app.isPackaged ? process.resourcesPath : app.getAppPath();
   const localVenvPython =
@@ -195,13 +219,13 @@ function resolveBackendCommand() {
     };
   }
 
-  const localLauncher = process.platform === "win32" ? "py" : "python3.12";
+  const localLauncher = process.platform === "win32" ? "py" : "python3";
   const scriptPath = app.isPackaged
     ? path.join(process.resourcesPath, "app.asar.unpacked", "server.py")
     : path.join(app.getAppPath(), "server.py");
   return {
     command: localLauncher,
-    args: process.platform === "win32" ? ["-3.12", scriptPath] : [scriptPath],
+    args: process.platform === "win32" ? ["-3.13", scriptPath] : [scriptPath],
   };
 }
 
