@@ -28,10 +28,12 @@ function detectPython() {
 
   const candidates = process.platform === "win32"
     ? [
+        ["py", ["-3.13"]],
         ["py", ["-3.12"]],
         ["python", []],
       ]
     : [
+        ["python3.13", []],
         ["python3.12", []],
         ["python3", []],
         ["python", []],
@@ -49,7 +51,7 @@ function detectPython() {
     }
   }
 
-  throw new Error("Python 3.12 was not found. Install Python and retry.");
+  throw new Error("Python 3.12 or 3.13 was not found. Install Python and retry.");
 }
 
 function main() {

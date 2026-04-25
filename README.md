@@ -17,13 +17,13 @@ Electron now provides the operator control panel, while the Python backend remai
 ### Python backend prerequisites
 
 ```powershell
-py -3.12 -m venv env
+py -3.13 -m venv env
 .\env\Scripts\activate
 pip install -r requirements.txt
 ```
 
 > [!IMPORTANT]
-> Incase those versions above are not found then please install `python3.12` using this link [Python3.12](https://www.python.org/downloads/release/python-3122/)
+> Python 3.13 is also supported. If you encounter issues, ensure you're using Python 3.12 or higher.
 
 ### Electron app
 
