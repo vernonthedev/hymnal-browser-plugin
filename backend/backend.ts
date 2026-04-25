@@ -1,10 +1,8 @@
-import { Elysia } from 'elysia'
-import { cors } from '@elysiajs/cors'
-import { staticPlugin } from '@elysiajs/static'
-import { WebSocket, WebSocketServer } from 'ws'
+import WebSocket, { WebSocketServer } from 'ws'
 import { readdirSync, readFileSync, existsSync, mkdirSync, writeFileSync } from 'fs'
-import { join, resolve } from 'path'
+import { join, resolve, dirname } from 'path'
 import { createServer } from 'http'
+import { fileURLToPath } from 'url'
 
 const HOST = "127.0.0.1"
 const APP_VERSION = "2.0.0"
@@ -67,15 +65,13 @@ interface HymnItem {
 }
 
 class HymnBroadcastServer {
-  private app: Elysia
   private state: AppState
-  private wss: WebSocket.Server | null = null
+  private wss: WebSocketServer | null = null
   private httpServer: ReturnType<typeof createServer> | null = null
   private heartbeatInterval: NodeJS.Timeout | null = null
 
   constructor(baseDir: string, dataDir: string, token?: string) {
     this.state = this.initializeState(baseDir, dataDir, token)
-    this.app = this.createApp()
   }
 
   private initializeState(baseDir: string, dataDir: string, token?: string): AppState {
@@ -177,23 +173,7 @@ class HymnBroadcastServer {
     })
   }
 
-  private createApp(): Elysia {
-    return new Elysia()
-      .use(cors())
-      .use(staticPlugin({
-        assets: resolve(this.state.baseDir),
-        prefix: ''
-      }))
-      .get('/health', () => ({
-        ok: existsSync(this.state.hymnsDir),
-        http_port: this.state.httpPort,
-        ws_port: this.state.wsPort,
-      }))
-      .get('/status', () => this.getStatusPayload())
-      .get('/version', () => ({ version: APP_VERSION }))
-      .get('/hymns', () => ({ items: this.state.hymnIndex }))
-      .get('/presets', () => ({ items: this.state.presets }))
-  }
+
 
   private getStatusPayload() {
     return {
@@ -600,16 +580,26 @@ class HymnBroadcastServer {
     this.state.wsPort = wsPort
 
     // Create HTTP server
-    this.httpServer = createServer(this.app.fetch)
+    this.httpServer = createServer(async (req, res) => {
+      const url = new URL(req.url || '', `http://${req.headers.host}`)
+      const response = await this.handleHttpRequest(req, url)
 
-    // Create WebSocket server on the same port
+      res.writeHead(response.status, response.headers)
+      if (typeof response.body === 'string') {
+        res.end(response.body)
+      } else {
+        res.end(response.body)
+      }
+    })
+
+    // Create WebSocket server
     this.wss = new WebSocketServer({
       server: this.httpServer,
       perMessageDeflate: false
     })
 
     // Handle WebSocket connections
-    this.wss.on('connection', (ws, req) => {
+    this.wss.on('connection', (ws: WebSocket) => {
       this.handleWebSocketConnection(ws)
     })
 
@@ -620,6 +610,82 @@ class HymnBroadcastServer {
         resolve()
       })
     })
+  }
+
+  private async handleHttpRequest(req: any, url: URL): Promise<{status: number, headers: any, body: string | Buffer}> {
+    const method = req.method
+    const path = url.pathname
+
+    try {
+      switch (path) {
+        case '/health':
+          return {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ok: existsSync(this.state.hymnsDir),
+              http_port: this.state.httpPort,
+              ws_port: this.state.wsPort,
+            })
+          }
+
+        case '/status':
+          return {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(this.getStatusPayload())
+          }
+
+        case '/version':
+          return {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ version: APP_VERSION })
+          }
+
+        case '/hymns':
+          return {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: this.state.hymnIndex })
+          }
+
+        case '/presets':
+          return {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: this.state.presets })
+          }
+
+        default:
+          // Serve static files
+          const filePath = join(this.state.baseDir, path)
+          if (existsSync(filePath) && !filePath.includes('..')) {
+            const content = readFileSync(filePath)
+            const ext = path.split('.').pop()?.toLowerCase()
+            const contentType = ext === 'html' ? 'text/html' :
+                              ext === 'css' ? 'text/css' :
+                              ext === 'js' ? 'application/javascript' :
+                              'application/octet-stream'
+            return {
+              status: 200,
+              headers: { 'Content-Type': contentType },
+              body: content
+            }
+          }
+          return {
+            status: 404,
+            headers: { 'Content-Type': 'text/plain' },
+            body: 'Not Found'
+          }
+      }
+    } catch (error) {
+      return {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Internal Server Error' })
+      }
+    }
   }
 
   stop(): void {
@@ -640,7 +706,7 @@ async function main() {
   const args = process.argv.slice(2)
   let httpPort = 9999
   let wsPort = 8765
-  let baseDir = resolve(__dirname)
+  let baseDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
   let dataDir = baseDir
   let token = ''
 

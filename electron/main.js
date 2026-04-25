@@ -178,14 +178,14 @@ async function choosePort(preferredPort) {
 function resolveBackendCommand() {
   const repoRoot = app.isPackaged ? process.resourcesPath : app.getAppPath();
   const scriptPath = app.isPackaged
-    ? path.join(process.resourcesPath, "app.asar.unpacked", "backend.js")
-    : path.join(app.getAppPath(), "backend.ts");
+    ? path.join(process.resourcesPath, "app.asar.unpacked", "backend", "backend.ts")
+    : path.join(app.getAppPath(), "backend", "backend.ts");
 
-  // Try bun first, then node
-  const candidates = [
-    { command: "bun", args: ["run", scriptPath] },
-    { command: "node", args: [scriptPath.replace(/\.ts$/, ".js")] },
-  ];
+  // Use bun to run TypeScript directly
+  return {
+    command: "bun",
+    args: ["run", scriptPath],
+  };
 
   for (const candidate of candidates) {
     try {

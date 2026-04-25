@@ -11,12 +11,12 @@
   },
   "license": "MIT",
   "scripts": {
-    "dev": "bun run build:backend && electron .",
-    "start": "bun run build:backend && electron .",
+    "dev": "electron .",
+    "start": "electron .",
     "verify:build-assets": "node scripts/verify-build-assets.js",
     "prepare:dist": "node scripts/prepare-dist.js",
     "build:icons": "node scripts/build-icons.js",
-    "build:backend": "tsc --outDir .",
+
     "dist": "bun run prepare:dist && bun run verify:build-assets && electron-builder --publish never",
     "dist:dir": "bun run prepare:dist && bun run verify:build-assets && electron-builder --dir --publish never",
     "dist:win": "bun run prepare:dist && bun run verify:build-assets && electron-builder --win nsis portable --publish never",
@@ -33,9 +33,8 @@
       "assets/**/*",
       "overlays/**/*",
       "hymns/**/*",
-      "server.py",
-      "README.md",
-      "requirements.txt"
+      "backend/**/*",
+      "README.md"
     ],
     "extraResources": [
       {
