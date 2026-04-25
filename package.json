@@ -1,5 +1,4 @@
 {
-  "type": "module",
   "name": "sda-hymnal-desktop",
   "version": "2.0.0",
   "description": "Electron desktop controller for the SDA Hymnal lower thirds backend",
@@ -37,13 +36,6 @@
       "README.md"
     ],
     "extraResources": [
-      {
-        "from": "dist/backend",
-        "to": "backend",
-        "filter": [
-          "**/*"
-        ]
-      },
       {
         "from": "overlays",
         "to": "overlays",

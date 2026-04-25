@@ -186,47 +186,6 @@ function resolveBackendCommand() {
     command: "bun",
     args: ["run", scriptPath],
   };
-
-  for (const candidate of candidates) {
-    try {
-      // Simple check if command exists
-      const { spawnSync } = require("child_process");
-      const result = spawnSync(candidate.command, ["--version"], { stdio: "ignore" });
-      if (result.status === 0) {
-        return candidate;
-      }
-    } catch {
-      // Command not found, try next
-    }
-  }
-
-  // Fallback to node
-  return {
-    command: "node",
-    args: [scriptPath.replace(/\.ts$/, ".js")],
-  };
-}
-
-  const repoRoot = app.isPackaged ? process.resourcesPath : app.getAppPath();
-  const localVenvPython =
-    process.platform === "win32"
-      ? path.join(repoRoot, "env", "Scripts", "python.exe")
-      : path.join(repoRoot, "env", "bin", "python");
-  if (fs.existsSync(localVenvPython)) {
-    return {
-      command: localVenvPython,
-      args: [],
-    };
-  }
-
-  const localLauncher = process.platform === "win32" ? "py" : "python3";
-  const scriptPath = app.isPackaged
-    ? path.join(process.resourcesPath, "app.asar.unpacked", "server.py")
-    : path.join(app.getAppPath(), "server.py");
-  return {
-    command: localLauncher,
-    args: process.platform === "win32" ? ["-3.13", scriptPath] : [scriptPath],
-  };
 }
 
 function isFatalBackendLine(line) {
@@ -291,13 +250,12 @@ async function startBackend() {
   const baseDir = app.isPackaged ? process.resourcesPath : app.getAppPath();
   const args = [
     ...backend.args,
-    app.isPackaged ? "" : path.join(app.getAppPath(), "server.py"),
     `--http-port=${httpPort}`,
     `--ws-port=${wsPort}`,
     `--base-dir=${baseDir}`,
     `--data-dir=${dataDir}`,
     `--token=${config.token}`,
-  ].filter(Boolean);
+  ];
 
   sendToRenderer("backend-event", {
     type: "lifecycle",
@@ -466,38 +424,40 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, "renderer", "index.html"));
 }
 
-ipcMain.handle("runtime:get", async () => runtimeInfo);
-ipcMain.handle("clipboard:copy", async (_event, text) => {
-  clipboard.writeText(text);
-  return true;
-});
-ipcMain.handle("shell:openExternal", async (_event, target) => {
-  await shell.openExternal(target);
-  return true;
-});
-ipcMain.handle("shell:openPath", async (_event, target) => {
-  await shell.openPath(target);
-  return true;
-});
-ipcMain.handle("app:getVersion", async () => app.getVersion());
-ipcMain.handle("app:getReleaseInfo", async () => getLatestReleaseInfo());
-ipcMain.handle("window:minimize", async () => {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.minimize();
-  }
-  return true;
-});
-ipcMain.handle("window:close", async () => {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.close();
-  }
-  return true;
-});
+
 
 app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
   createWindow();
   await startBackend();
+
+  ipcMain.handle("runtime:get", async () => runtimeInfo);
+  ipcMain.handle("clipboard:copy", async (_event, text) => {
+    clipboard.writeText(text);
+    return true;
+  });
+  ipcMain.handle("shell:openExternal", async (_event, target) => {
+    await shell.openExternal(target);
+    return true;
+  });
+  ipcMain.handle("shell:openPath", async (_event, target) => {
+    await shell.openPath(target);
+    return true;
+  });
+  ipcMain.handle("app:getVersion", async () => app.getVersion());
+  ipcMain.handle("app:getReleaseInfo", async () => getLatestReleaseInfo());
+  ipcMain.handle("window:minimize", async () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.minimize();
+    }
+    return true;
+  });
+  ipcMain.handle("window:close", async () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.close();
+    }
+    return true;
+  });
 });
 
 app.on("before-quit", async (event) => {
