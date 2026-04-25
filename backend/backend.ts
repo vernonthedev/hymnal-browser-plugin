@@ -605,6 +605,8 @@ class HymnBroadcastServer {
 
     return new Promise((resolve) => {
       this.httpServer!.listen(httpPort, HOST, () => {
+        console.log(`HTTP server listening on http://${HOST}:${httpPort}`)
+        console.log(`WebSocket server ready on ws://${HOST}:${wsPort}`)
         this.startHeartbeat()
         this.emitReady()
         resolve()
