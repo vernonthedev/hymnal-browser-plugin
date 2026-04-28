@@ -1,3 +1,5 @@
+console.log("Renderer script loading");
+
 const MAX_LOG_LINES = 9;
 const MAX_FINDER_RESULTS = 6;
 
@@ -15,56 +17,60 @@ const state = {
   pickerDismissed: false,
 };
 
-const elements = {
-  serverPhase: document.getElementById("server-phase"),
-  serverPorts: document.getElementById("server-ports"),
-  hymnInput: document.getElementById("hymn-input"),
-  hymnSearchResults: document.getElementById("hymn-search-results"),
-  hymnSearchPopover: document.getElementById("hymn-search-popover"),
-  finderResultsCount: document.getElementById("finder-results-count"),
-  finderSelectionNumber: document.getElementById("finder-selection-number"),
-  finderSelectionPreview: document.getElementById("finder-selection-preview"),
-  loadBtn: document.getElementById("load-btn"),
-  prevBtn: document.getElementById("prev-btn"),
-  nextBtn: document.getElementById("next-btn"),
-  resetBtn: document.getElementById("reset-btn"),
-  blankBtn: document.getElementById("blank-btn"),
-  showBtn: document.getElementById("show-btn"),
-  retriggerBtn: document.getElementById("retrigger-btn"),
-  reloadIndexBtn: document.getElementById("reload-index-btn"),
-  openUrlsBtn: document.getElementById("open-urls-btn"),
-  openHelpBtn: document.getElementById("open-help-btn"),
-  openAboutBtn: document.getElementById("open-about-btn"),
-  windowMinimizeBtn: document.getElementById("window-minimize-btn"),
-  windowCloseBtn: document.getElementById("window-close-btn"),
-  prevLinePreview: document.getElementById("prev-line-preview"),
-  currentLinePreview: document.getElementById("current-line-preview"),
-  nextLinePreview: document.getElementById("next-line-preview"),
-  currentHymn: document.getElementById("current-hymn"),
-  lineMeta: document.getElementById("line-meta"),
-  overlayCount: document.getElementById("overlay-count"),
-  visibilityMeta: document.getElementById("visibility-meta"),
-  overlayUrlList: document.getElementById("overlay-url-list"),
-  copyDiagnosticsBtn: document.getElementById("copy-diagnostics-btn"),
-  openHymnsBtn: document.getElementById("open-hymns-btn"),
-  logOutput: document.getElementById("log-output"),
-  toastRegion: document.getElementById("toast-region"),
-  modalOverlay: document.getElementById("modal-overlay"),
-  modalEyebrow: document.getElementById("modal-eyebrow"),
-  modalTitle: document.getElementById("modal-title"),
-  modalBody: document.getElementById("modal-body"),
-  modalCloseBtn: document.getElementById("modal-close-btn"),
-  speakerTemplate: document.getElementById("speaker-template-select"),
-  fontSize: document.getElementById("font-size-select"),
-  alignment: document.getElementById("alignment-select"),
-  animation: document.getElementById("animation-select"),
-  safeMargin: document.getElementById("safe-margin-input"),
-  speaker: document.getElementById("speaker-input"),
-  presetSelect: document.getElementById("preset-select"),
-  presetName: document.getElementById("preset-name-input"),
-  applyPresetBtn: document.getElementById("apply-preset-btn"),
-  savePresetBtn: document.getElementById("save-preset-btn"),
-};
+let elements = null;
+
+function initElements() {
+  elements = {
+    serverPhase: document.getElementById("server-phase"),
+    serverPorts: document.getElementById("server-ports"),
+    hymnInput: document.getElementById("hymn-input"),
+    hymnSearchResults: document.getElementById("hymn-search-results"),
+    hymnSearchPopover: document.getElementById("hymn-search-popover"),
+    finderResultsCount: document.getElementById("finder-results-count"),
+    finderSelectionNumber: document.getElementById("finder-selection-number"),
+    finderSelectionPreview: document.getElementById("finder-selection-preview"),
+    loadBtn: document.getElementById("load-btn"),
+    prevBtn: document.getElementById("prev-btn"),
+    nextBtn: document.getElementById("next-btn"),
+    resetBtn: document.getElementById("reset-btn"),
+    blankBtn: document.getElementById("blank-btn"),
+    showBtn: document.getElementById("show-btn"),
+    retriggerBtn: document.getElementById("retrigger-btn"),
+    reloadIndexBtn: document.getElementById("reload-index-btn"),
+    openUrlsBtn: document.getElementById("open-urls-btn"),
+    openHelpBtn: document.getElementById("open-help-btn"),
+    openAboutBtn: document.getElementById("open-about-btn"),
+    windowMinimizeBtn: document.getElementById("window-minimize-btn"),
+    windowCloseBtn: document.getElementById("window-close-btn"),
+    prevLinePreview: document.getElementById("prev-line-preview"),
+    currentLinePreview: document.getElementById("current-line-preview"),
+    nextLinePreview: document.getElementById("next-line-preview"),
+    currentHymn: document.getElementById("current-hymn"),
+    lineMeta: document.getElementById("line-meta"),
+    overlayCount: document.getElementById("overlay-count"),
+    visibilityMeta: document.getElementById("visibility-meta"),
+    overlayUrlList: document.getElementById("overlay-url-list"),
+    copyDiagnosticsBtn: document.getElementById("copy-diagnostics-btn"),
+    openHymnsBtn: document.getElementById("open-hymns-btn"),
+    logOutput: document.getElementById("log-output"),
+    toastRegion: document.getElementById("toast-region"),
+    modalOverlay: document.getElementById("modal-overlay"),
+    modalEyebrow: document.getElementById("modal-eyebrow"),
+    modalTitle: document.getElementById("modal-title"),
+    modalBody: document.getElementById("modal-body"),
+    modalCloseBtn: document.getElementById("modal-close-btn"),
+    speakerTemplate: document.getElementById("speaker-template-select"),
+    fontSize: document.getElementById("font-size-select"),
+    alignment: document.getElementById("alignment-select"),
+    animation: document.getElementById("animation-select"),
+    safeMargin: document.getElementById("safe-margin-input"),
+    speaker: document.getElementById("speaker-input"),
+    presetSelect: document.getElementById("preset-select"),
+    presetName: document.getElementById("preset-name-input"),
+    applyPresetBtn: document.getElementById("apply-preset-btn"),
+    savePresetBtn: document.getElementById("save-preset-btn"),
+  };
+}
 
 function renderLogs() {
   if (!elements.logOutput) {
@@ -469,29 +475,26 @@ async function fetchJson(route) {
   if (!state.runtime) {
     throw new Error("Runtime is not available yet.");
   }
-  const response = await fetch(
-    `http://127.0.0.1:${state.runtime.httpPort}${route}`,
-  );
+  const response = await fetch(`http://127.0.0.1:${state.runtime.httpPort}${route}`);
   if (!response.ok) {
-    throw new Error(`Request failed for ${route}`);
+    throw new Error(`Request failed for ${route}: ${response.status}`);
   }
   return response.json();
 }
 
 async function refreshIndexes() {
   try {
-    const hymnPayload = await fetchJson("/hymns");
-    state.hymnIndex = hymnPayload.items || [];
+    showToast("Loading hymns...", "info");
+    const hymnsResponse = await fetchJson("/hymns");
+    state.hymnIndex = hymnsResponse.items || [];
+    state.presets = (await fetchJson("/presets")).items || {};
+    showToast(`Loaded ${state.hymnIndex.length} hymns`, "info");
     renderHymnOptions();
-    renderFinderSpotlight();
-    renderFinderResults();
-
-    const presetPayload = await fetchJson("/presets");
-    state.presets = presetPayload.items || {};
     renderPresets();
   } catch (error) {
-    showToast(error.message, "error");
+    showToast("Failed to load hymns: " + error.message, "error");
   }
+}
 }
 
 function sendCommand(payload) {
@@ -504,21 +507,25 @@ function sendCommand(payload) {
 
 function connectSocket() {
   if (!state.runtime) {
+    showToast("No runtime, cannot connect socket", "error");
     return;
   }
 
+  showToast("Connecting WebSocket...", "info");
   window.clearTimeout(state.reconnectTimer);
   if (state.socket) {
     state.socket.close();
   }
 
-  state.socket = new WebSocket(`ws://127.0.0.1:${state.runtime.wsPort}`);
+  state.socket = new WebSocket(`ws://127.0.0.1:${state.runtime.httpPort}`);
   state.socket.addEventListener("open", () => {
+    showToast("WebSocket connected", "info");
     state.socket.send(JSON.stringify({ cmd: "hello", role: "control" }));
   });
   state.socket.addEventListener("message", (event) => {
     const payload = JSON.parse(event.data);
     if (payload.type === "status") {
+      showToast("Received status from backend", "info");
       state.status = payload.status;
       renderStatus();
       return;
@@ -768,20 +775,34 @@ function bindEvents() {
 }
 
 async function init() {
+  console.log("Initializing renderer");
+  initElements();
+
+  // Wait for desktopApi to be available
+  while (!window.desktopApi) {
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+
+  console.log("Desktop API available");
   bindEvents();
   renderFinderResults();
   state.appVersion = await window.desktopApi.getVersion();
   state.releaseInfo = await window.desktopApi.getReleaseInfo();
   const runtime = await window.desktopApi.getRuntime();
   if (runtime) {
+    console.log("Initial runtime available:", runtime);
     state.runtime = runtime;
     renderOverlayUrls();
     connectSocket();
     await refreshIndexes();
   }
 
+  console.log("Setting up backend event listener");
   window.desktopApi.onBackendEvent(async (event) => {
+    console.log("Received backend event:", event);
+    showToast(`Event: ${event.type}`, "info");
     if (event.type === "runtime") {
+      showToast(`Runtime received: ${event.runtime.httpPort}`, "info");
       state.runtime = event.runtime;
       renderOverlayUrls();
       connectSocket();
@@ -813,4 +834,12 @@ async function init() {
   });
 }
 
-init();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM ready, initializing");
+    init();
+  });
+} else {
+  console.log("DOM already ready, initializing");
+  init();
+}

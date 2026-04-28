@@ -10,17 +10,17 @@
   },
   "license": "MIT",
   "scripts": {
-    "dev": "electron .",
-    "start": "electron .",
+    "dev": "electron . --disable-gpu --disable-software-rasterizer",
+    "start": "electron . --disable-gpu --disable-software-rasterizer",
     "verify:build-assets": "node scripts/verify-build-assets.js",
     "prepare:dist": "node scripts/prepare-dist.js",
     "build:icons": "node scripts/build-icons.js",
 
-    "dist": "bun run prepare:dist && bun run verify:build-assets && electron-builder --publish never",
-    "dist:dir": "bun run prepare:dist && bun run verify:build-assets && electron-builder --dir --publish never",
-    "dist:win": "bun run prepare:dist && bun run verify:build-assets && electron-builder --win nsis portable --publish never",
-    "dist:mac": "bun run prepare:dist && bun run verify:build-assets && electron-builder --mac dmg --publish never",
-    "dist:linux": "bun run prepare:dist && bun run verify:build-assets && electron-builder --linux AppImage deb --publish never"
+    "dist": "npm run prepare:dist && npm run verify:build-assets && electron-builder --publish never",
+    "dist:dir": "npm run prepare:dist && npm run verify:build-assets && electron-builder --dir --publish never",
+    "dist:win": "npm run prepare:dist && npm run verify:build-assets && electron-builder --win nsis portable --publish never",
+    "dist:mac": "npm run prepare:dist && npm run verify:build-assets && electron-builder --mac dmg --publish never",
+    "dist:linux": "npm run prepare:dist && npm run verify:build-assets && electron-builder --linux AppImage deb --publish never"
   },
   "build": {
     "appId": "com.sda.hymnal.desktop",
@@ -32,7 +32,6 @@
       "assets/**/*",
       "overlays/**/*",
       "hymns/**/*",
-      "backend/**/*",
       "README.md"
     ],
     "extraResources": [
@@ -97,9 +96,6 @@
     }
   },
   "dependencies": {
-    "@elysiajs/cors": "^1.1.1",
-    "@elysiajs/static": "^1.1.1",
-    "elysia": "^1.1.12",
     "ws": "^8.18.0"
   },
   "devDependencies": {

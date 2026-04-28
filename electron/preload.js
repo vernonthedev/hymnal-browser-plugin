@@ -1,5 +1,7 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
+console.log("Preload script loaded");
+
 contextBridge.exposeInMainWorld("desktopApi", {
   getRuntime: () => ipcRenderer.invoke("runtime:get"),
   copyText: (text) => ipcRenderer.invoke("clipboard:copy", text),
