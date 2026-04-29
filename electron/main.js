@@ -612,13 +612,20 @@ class HymnBroadcastServer {
           // Serve static files
           (async () => {
             try {
-              const filePath = path.join(this.state.baseDir, reqPath);
-              if (fs.existsSync(filePath) && !filePath.includes('..')) {
-                const content = await fs.promises.readFile(filePath);
-                const ext = reqPath.split('.').pop()?.toLowerCase();
-                const contentType = ext === 'html' ? 'text/html' :
-                                  ext === 'css' ? 'text/css' :
-                                  ext === 'js' ? 'application/javascript' :
+              let targetPath = path.join(this.state.baseDir, reqPath);
+              
+              if (fs.existsSync(targetPath) && fs.statSync(targetPath).isDirectory()) {
+                targetPath = path.join(targetPath, 'index.html');
+              }
+
+              if (fs.existsSync(targetPath) && !targetPath.includes('..')) {
+                const content = await fs.promises.readFile(targetPath);
+                const ext = path.extname(targetPath).toLowerCase();
+                const contentType = ext === '.html' ? 'text/html' :
+                                  ext === '.css' ? 'text/css' :
+                                  ext === '.js' ? 'application/javascript' :
+                                  ext === '.png' ? 'image/png' :
+                                  ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' :
                                   'application/octet-stream';
                 res.writeHead(200, { 'Content-Type': contentType });
                 res.end(content);
