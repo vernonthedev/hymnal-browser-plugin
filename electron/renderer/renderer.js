@@ -484,17 +484,21 @@ async function fetchJson(route) {
 
 async function refreshIndexes() {
   try {
+    console.log("Refreshing indexes...");
     showToast("Loading hymns...", "info");
     const hymnsResponse = await fetchJson("/hymns");
+    console.log("Hymns response received:", hymnsResponse);
     state.hymnIndex = hymnsResponse.items || [];
     state.presets = (await fetchJson("/presets")).items || {};
+    console.log(`Loaded ${state.hymnIndex.length} hymns`);
     showToast(`Loaded ${state.hymnIndex.length} hymns`, "info");
     renderHymnOptions();
     renderPresets();
+    renderFinderResults();
   } catch (error) {
+    console.error("Failed to refresh indexes:", error);
     showToast("Failed to load hymns: " + error.message, "error");
   }
-}
 }
 
 function sendCommand(payload) {

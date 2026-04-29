@@ -52,13 +52,9 @@ class HymnBroadcastServer {
 
   initializeState(baseDir, dataDir, token) {
     const hymnsDir = fs.existsSync(path.join(dataDir, 'hymns')) ? path.join(dataDir, 'hymns') : path.join(baseDir, 'hymns');
-
     const presetsPath = path.join(dataDir, 'style-presets.json');
 
-    // Ensure data directory exists
-    fs.mkdirSync(dataDir, { recursive: true });
-
-    const state = {
+    return {
       baseDir,
       dataDir,
       hymnsDir,
@@ -71,50 +67,69 @@ class HymnBroadcastServer {
       lastError: '',
       overlayClients: new Map(),
       controlClientIds: new Set(),
-      presets: this.loadPresets(presetsPath),
-      hymnIndex: this.buildHymnIndex(hymnsDir),
+      presets: {},
+      hymnIndex: [],
       currentHymn: "1",
-      lines: this.readHymnLines("1", hymnsDir),
+      lines: [],
       lineIndex: 0,
       visible: true,
       style: { ...DEFAULT_STYLE }
     };
-
-    return state;
   }
 
-  loadPresets(presetsPath) {
+  async initialize() {
+    console.log("Hymns are initializing...");
+    await ensureDirectory(this.state.dataDir);
+    this.state.presets = await this.loadPresets(this.state.presetsPath);
+    this.state.hymnIndex = await this.buildHymnIndex(this.state.hymnsDir);
+    this.state.lines = await this.readHymnLines(this.state.currentHymn, this.state.hymnsDir);
+    console.log("Hymns are initialized.");
+  }
+
+  async loadPresets(presetsPath) {
     if (!fs.existsSync(presetsPath)) {
       const presets = { ...DEFAULT_PRESETS };
-      this.savePresets(presetsPath, presets);
+      await this.savePresets(presetsPath, presets);
       return presets;
     }
 
     try {
-      const data = JSON.parse(fs.readFileSync(presetsPath, 'utf-8'));
+      const data = JSON.parse(await fs.promises.readFile(presetsPath, 'utf-8'));
       if (typeof data === 'object' && data !== null) {
         return data;
       }
-    } catch {}
+    } catch (error) {
+      console.error(`Error loading presets from ${presetsPath}:`, error);
+    }
 
     const presets = { ...DEFAULT_PRESETS };
-    this.savePresets(presetsPath, presets);
+    await this.savePresets(presetsPath, presets);
     return presets;
   }
 
-  savePresets(presetsPath, presets) {
-    fs.writeFileSync(presetsPath, JSON.stringify(presets, null, 2));
+  async savePresets(presetsPath, presets) {
+    try {
+      await fs.promises.writeFile(presetsPath, JSON.stringify(presets, null, 2));
+    } catch (error) {
+      console.error(`Error saving presets to ${presetsPath}:`, error);
+    }
   }
 
-  readHymnLines(hymn, hymnsDir) {
+  async readHymnLines(hymn, hymnsDir) {
     const filePath = path.join(hymnsDir, `${hymn}.txt`);
-    if (!fs.existsSync(filePath)) return [];
+    try {
+      if (!fs.existsSync(filePath)) return [];
 
-    const content = fs.readFileSync(filePath, 'utf-8');
-    return content
-      .split(/\r?\n/)
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
+      console.log("Reading Hymn line contents");
+      const content = await fs.promises.readFile(filePath, "utf-8");
+      return content
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+    } catch (error) {
+      console.error(`Error reading hymn ${hymn}:`, error);
+      return [];
+    }
   }
 
   sortHymnPath(path) {
@@ -123,27 +138,38 @@ class HymnBroadcastServer {
     return isNaN(num) ? [Number.MAX_SAFE_INTEGER, stem] : [num, stem];
   }
 
-  buildHymnIndex(hymnsDir) {
+  async buildHymnIndex(hymnsDir) {
     if (!fs.existsSync(hymnsDir)) return [];
-    const hymnFiles = fs.readdirSync(hymnsDir)
-      .filter(file => file.endsWith('.txt'))
-      .sort((a, b) => {
-        const [aNum] = this.sortHymnPath(a);
-        const [bNum] = this.sortHymnPath(b);
-        return aNum - bNum;
-      });
+    try {
+      const files = await fs.promises.readdir(hymnsDir);
+      const hymnFiles = files
+        .filter((file) => file.endsWith(".txt"))
+        .sort((a, b) => {
+          const [aNum] = this.sortHymnPath(a);
+          const [bNum] = this.sortHymnPath(b);
+          return aNum - bNum;
+        });
 
-    return hymnFiles.map(file => {
-      const number = file.replace(/\.txt$/, '');
-      let preview = '';
-      try {
-        const content = fs.readFileSync(path.join(hymnsDir, file), 'utf-8');
-        const firstLine = content.split(/\r?\n/)[0]?.trim();
-        if (firstLine) preview = firstLine;
-      } catch {}
-
-      return { number, preview };
-    });
+      const index = await Promise.all(
+        hymnFiles.map(async (file) => {
+          const number = file.replace(/\.txt$/, "");
+          let preview = "";
+          try {
+            const content = await fs.promises.readFile(path.join(hymnsDir, file), "utf-8");
+            const firstLine = content.split(/\r?\n/)[0]?.trim();
+            if (firstLine) preview = firstLine;
+          } catch (err) {
+            console.error(`Error reading hymn file ${file}:`, err);
+          }
+          return { number, preview };
+        })
+      );
+      console.log(`Indexed ${index.length} hymns.`);
+      return index;
+    } catch (error) {
+      console.error("Error building hymn index:", error);
+      return [];
+    }
   }
 
   getStatusPayload() {
@@ -270,7 +296,7 @@ class HymnBroadcastServer {
     }
   }
 
-  handleCommand(ws, data, clientId) {
+  async handleCommand(ws, data, clientId) {
     // Check authorization for overlay clients
     if (this.state.overlayClients.has(clientId)) {
       const overlayMeta = this.state.overlayClients.get(clientId);
@@ -280,7 +306,7 @@ class HymnBroadcastServer {
       }
     }
 
-    const { success, error, payload } = this.processCommand(data);
+    const { success, error, payload } = await this.processCommand(data);
 
     if (!success) {
       ws.send(JSON.stringify({ type: 'error', message: error }));
@@ -333,7 +359,7 @@ class HymnBroadcastServer {
     this.state.controlClients = this.state.controlClientIds.size;
   }
 
-  processCommand(command) {
+  async processCommand(command) {
     const cmd = command.cmd;
     if (!cmd) {
       return { success: false, error: 'Missing cmd' };
@@ -341,7 +367,7 @@ class HymnBroadcastServer {
 
     switch (cmd) {
       case 'load':
-        return this.handleLoadCommand(command);
+        return await this.handleLoadCommand(command);
       case 'next':
         return this.handleNextCommand();
       case 'prev':
@@ -358,25 +384,25 @@ class HymnBroadcastServer {
       case 'update_style':
         return this.handleUpdateStyleCommand(command);
       case 'save_preset':
-        return this.handleSavePresetCommand(command);
+        return await this.handleSavePresetCommand(command);
       case 'apply_preset':
         return this.handleApplyPresetCommand(command);
       case 'reload_hymns':
-        return this.handleReloadHymnsCommand();
+        return await this.handleReloadHymnsCommand();
       default:
         this.state.lastError = `Unsupported command: ${cmd}`;
         return { success: false, error: this.state.lastError };
     }
   }
 
-  handleLoadCommand(command) {
+  async handleLoadCommand(command) {
     const hymn = String(command.hymn || '').trim();
     if (!hymn) {
       this.state.lastError = 'Please enter a hymn number.';
       return { success: false, error: this.state.lastError };
     }
 
-    const lines = this.readHymnLines(hymn, this.state.hymnsDir);
+    const lines = await this.readHymnLines(hymn, this.state.hymnsDir);
     if (!lines.length) {
       this.state.lastError = `Hymn ${hymn} was not found or is empty.`;
       return { success: false, error: this.state.lastError };
@@ -442,17 +468,17 @@ class HymnBroadcastServer {
     return { success: true, payload: this.overlayPayload('style') };
   }
 
-  handleSavePresetCommand(command) {
+  async handleSavePresetCommand(command) {
     const name = String(command.name || '').trim();
     if (!name) {
-      this.state.lastError = 'Preset name is required.';
+      this.state.lastError = 'Please enter a preset name.';
       return { success: false, error: this.state.lastError };
     }
 
     this.state.presets[name] = { ...this.state.style };
-    this.savePresets(this.state.presetsPath, this.state.presets);
+    await this.savePresets(this.state.presetsPath, this.state.presets);
     this.state.lastError = '';
-    return { success: true, payload: { type: 'presets', presets: this.state.presets } };
+    return { success: true, payload: { type: 'presets', items: this.state.presets } };
   }
 
   handleApplyPresetCommand(command) {
@@ -468,8 +494,8 @@ class HymnBroadcastServer {
     return { success: true, payload: this.overlayPayload('style') };
   }
 
-  handleReloadHymnsCommand() {
-    this.state.hymnIndex = this.buildHymnIndex(this.state.hymnsDir);
+  async handleReloadHymnsCommand() {
+    this.state.hymnIndex = await this.buildHymnIndex(this.state.hymnsDir);
     this.state.lastError = '';
     return { success: true, payload: { type: 'hymn_index', items: this.state.hymnIndex } };
   }
@@ -538,6 +564,19 @@ class HymnBroadcastServer {
     const method = req.method;
     const reqPath = url.pathname;
 
+    console.log(`[HTTP] ${method} ${reqPath}`);
+
+    // Add CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    if (method === 'OPTIONS') {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+
     try {
       switch (reqPath) {
         case '/health':
@@ -571,20 +610,28 @@ class HymnBroadcastServer {
 
         default:
           // Serve static files
-          const filePath = path.join(this.state.baseDir, reqPath);
-          if (fs.existsSync(filePath) && !filePath.includes('..')) {
-            const content = fs.readFileSync(filePath);
-            const ext = reqPath.split('.').pop()?.toLowerCase();
-            const contentType = ext === 'html' ? 'text/html' :
-                              ext === 'css' ? 'text/css' :
-                              ext === 'js' ? 'application/javascript' :
-                              'application/octet-stream';
-            res.writeHead(200, { 'Content-Type': contentType });
-            res.end(content);
-          } else {
-            res.writeHead(404, { 'Content-Type': 'text/plain' });
-            res.end('Not Found');
-          }
+          (async () => {
+            try {
+              const filePath = path.join(this.state.baseDir, reqPath);
+              if (fs.existsSync(filePath) && !filePath.includes('..')) {
+                const content = await fs.promises.readFile(filePath);
+                const ext = reqPath.split('.').pop()?.toLowerCase();
+                const contentType = ext === 'html' ? 'text/html' :
+                                  ext === 'css' ? 'text/css' :
+                                  ext === 'js' ? 'application/javascript' :
+                                  'application/octet-stream';
+                res.writeHead(200, { 'Content-Type': contentType });
+                res.end(content);
+              } else {
+                res.writeHead(404, { 'Content-Type': 'text/plain' });
+                res.end('Not Found');
+              }
+            } catch (err) {
+              console.error(`Error serving file ${reqPath}:`, err);
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Internal Server Error' }));
+            }
+          })();
           break;
       }
     } catch (error) {
@@ -594,6 +641,7 @@ class HymnBroadcastServer {
   }
 
   async start(httpPort, wsPort) {
+    await this.initialize();
     this.state.httpPort = httpPort;
     this.state.wsPort = wsPort;
 
@@ -604,7 +652,8 @@ class HymnBroadcastServer {
 
     // Create WebSocket server
     this.wss = new WebSocket.Server({
-      server: this.httpServer,
+      port: wsPort,
+      host: HOST,
       perMessageDeflate: false
     });
 
@@ -620,7 +669,7 @@ class HymnBroadcastServer {
     return new Promise((resolve) => {
       this.httpServer.listen(httpPort, HOST, () => {
         console.log(`HTTP server listening on http://${HOST}:${httpPort}`);
-        console.log(`WebSocket server ready on ws://${HOST}:${httpPort}`);
+        console.log(`WebSocket server ready on ws://${HOST}:${wsPort}`);
         this.startHeartbeat();
         resolve();
       });
@@ -657,7 +706,7 @@ function getRepoReadablePath(relativePath) {
   return path.join(app.getAppPath(), relativePath);
 }
 
-function getLatestReleaseInfo() {
+async function getLatestReleaseInfo() {
   const fallbackVersion = app.getVersion();
   const changelogPath = getRepoReadablePath(CHANGELOG_FILE);
 
@@ -671,7 +720,7 @@ function getLatestReleaseInfo() {
   }
 
   try {
-    const changelog = fs.readFileSync(changelogPath, "utf8");
+    const changelog = await fs.promises.readFile(changelogPath, "utf8");
     const lines = changelog.split(/\r?\n/);
     const headerIndex = lines.findIndex((line) => /^#\s*\[?\d+\.\d+\.\d+\]?/.test(line));
 
@@ -719,12 +768,12 @@ function getAppDataRoot() {
   return path.join(app.getPath("appData"), "SDA Hymnal Desktop");
 }
 
-function ensureDirectory(dirPath) {
-  fs.mkdirSync(dirPath, { recursive: true });
+async function ensureDirectory(dirPath) {
+  await fs.promises.mkdir(dirPath, { recursive: true });
 }
 
-function seedHymnsDir(targetHymnsDir) {
-  ensureDirectory(targetHymnsDir);
+async function seedHymnsDir(targetHymnsDir) {
+  await ensureDirectory(targetHymnsDir);
   const sourceDir = app.isPackaged
     ? getRepoReadablePath("hymns")
     : path.join(app.getAppPath(), "hymns");
@@ -733,28 +782,33 @@ function seedHymnsDir(targetHymnsDir) {
     return;
   }
 
-  const hasFiles = fs.readdirSync(targetHymnsDir).some((entry) => entry.endsWith(".txt"));
+  const targetFiles = await fs.promises.readdir(targetHymnsDir);
+  const hasFiles = targetFiles.some((entry) => entry.endsWith(".txt"));
   if (hasFiles) {
     return;
   }
 
-  for (const fileName of fs.readdirSync(sourceDir)) {
+  const sourceFiles = await fs.promises.readdir(sourceDir);
+  for (const fileName of sourceFiles) {
     if (!fileName.endsWith(".txt")) {
       continue;
     }
-    fs.copyFileSync(path.join(sourceDir, fileName), path.join(targetHymnsDir, fileName));
+    await fs.promises.copyFile(
+      path.join(sourceDir, fileName),
+      path.join(targetHymnsDir, fileName)
+    );
   }
 }
 
-function loadOrCreateRuntimeConfig() {
+async function loadOrCreateRuntimeConfig() {
   const root = getAppDataRoot();
-  ensureDirectory(root);
+  await ensureDirectory(root);
   const configPath = path.join(root, "runtime.json");
   let config = {};
 
   if (fs.existsSync(configPath)) {
     try {
-      config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+      config = JSON.parse(await fs.promises.readFile(configPath, "utf8"));
     } catch {
       config = {};
     }
@@ -764,7 +818,7 @@ function loadOrCreateRuntimeConfig() {
     config.token = crypto.randomBytes(18).toString("hex");
   }
 
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+  await fs.promises.writeFile(configPath, JSON.stringify(config, null, 2));
   return config;
 }
 
@@ -804,13 +858,6 @@ function overlayUrlsFromRuntime(info) {
   }));
 }
 
-function overlayUrlsFromRuntime(info) {
-  return info.overlayProfiles.map((overlay) => ({
-    ...overlay,
-    url: `http://127.0.0.1:${info.httpPort}${overlay.path}?token=${encodeURIComponent(info.token)}&wsPort=${info.wsPort}`,
-  }));
-}
-
 // Backend is now integrated, no health check needed
 
 function monitorBackendOutput(stream, onLine) {
@@ -833,12 +880,12 @@ async function startBackend() {
   }
 
   try {
-    const config = loadOrCreateRuntimeConfig();
+    const config = await loadOrCreateRuntimeConfig();
     const appDataRoot = getAppDataRoot();
     const dataDir = path.join(appDataRoot, "data");
     const hymnsDir = path.join(dataDir, "hymns");
-    ensureDirectory(dataDir);
-    seedHymnsDir(hymnsDir);
+    await ensureDirectory(dataDir);
+    await seedHymnsDir(hymnsDir);
 
     const httpPort = await choosePort(DEFAULT_HTTP_PORT);
     const wsPort = await choosePort(DEFAULT_WS_PORT);
@@ -942,7 +989,7 @@ app.whenReady().then(async () => {
     return true;
   });
   ipcMain.handle("app:getVersion", async () => app.getVersion());
-  ipcMain.handle("app:getReleaseInfo", async () => getLatestReleaseInfo());
+  ipcMain.handle("app:getReleaseInfo", async () => await getLatestReleaseInfo());
   ipcMain.handle("window:minimize", async () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.minimize();
