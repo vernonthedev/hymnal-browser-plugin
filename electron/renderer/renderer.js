@@ -446,11 +446,18 @@ function renderFinderResults() {
 
 function renderStatus() {
   const status = state.status;
+  const runtime = state.runtime;
+
+  // Use runtime ports as fallback if status is not yet available
+  const httpPort = status?.http_port || runtime?.httpPort || "-";
+  const wsPort = status?.ws_port || runtime?.wsPort || "-";
+  
+  elements.serverPorts.textContent = `HTTP ${httpPort}, WS ${wsPort}`;
+  
   if (!status) {
     return;
   }
 
-  elements.serverPorts.textContent = `HTTP ${status.http_port}, WS ${status.ws_port}`;
   elements.currentHymn.textContent = status.current_hymn || "-";
   elements.lineMeta.textContent = status.total_lines
     ? `${status.line_index + 1}/${status.total_lines}`
@@ -545,8 +552,20 @@ function connectSocket() {
       renderFinderResults();
       return;
     }
+    if (payload.type === "state") {
+      state.status = payload;
+      renderStatus();
+      return;
+    }
+    if (payload.type === "style") {
+      if (state.status) {
+        state.status.style = payload.style;
+        renderStatus();
+      }
+      return;
+    }
     if (payload.type === "presets") {
-      state.presets = payload.presets || {};
+      state.presets = payload.items || {};
       renderPresets();
     }
   });
@@ -685,17 +704,21 @@ function bindEvents() {
     renderFinderResults();
   });
 
-  elements.hymnInput.addEventListener("focus", () => {
-    renderFinderResults();
-  });
-
   elements.hymnInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      state.pickerDismissed = true;
-      sendCommand({ cmd: "load", hymn: elements.hymnInput.value.trim() });
-      elements.hymnSearchPopover?.classList.add("is-hidden");
+      const hymnValue = elements.hymnInput.value.trim();
+      if (hymnValue) {
+        sendCommand({ cmd: "load", hymn: hymnValue });
+        state.pickerDismissed = true;
+        renderFinderResults();
+        elements.hymnSearchPopover?.classList.add("is-hidden");
+      }
     }
+  });
+
+  elements.hymnInput.addEventListener("focus", () => {
+    renderFinderResults();
   });
 
   elements.loadBtn.addEventListener("click", () => {
@@ -809,6 +832,7 @@ async function init() {
       showToast(`Runtime received: ${event.runtime.httpPort}`, "info");
       state.runtime = event.runtime;
       renderOverlayUrls();
+      renderStatus();
       connectSocket();
       await refreshIndexes();
       return;

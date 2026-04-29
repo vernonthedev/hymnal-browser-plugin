@@ -521,16 +521,26 @@ class HymnBroadcastServer {
     if (!this.wss) return;
 
     const message = JSON.stringify(payload);
-    const targets = payload.type === 'state' || payload.type === 'visibility' || payload.type === 'retrigger' || payload.type === 'style'
-      ? Array.from(this.wss.clients).filter(ws => {
-          const clientId = ws.clientId;
-          if (!clientId || !this.state.overlayClients.has(clientId)) return false;
+    const isOverlayEvent = ['state', 'visibility', 'retrigger', 'style'].includes(payload.type);
 
-          const overlayMeta = this.state.overlayClients.get(clientId);
-          return !this.state.token || overlayMeta.authorized;
-        })
-      : Array.from(this.wss.clients);
+    const targets = Array.from(this.wss.clients).filter(ws => {
+      const clientId = ws.clientId;
+      if (!clientId) return false;
 
+      // Control clients receive everything
+      if (this.state.controlClientIds.has(clientId)) return true;
+
+      // Overlay clients receive overlay events if authorized
+      if (isOverlayEvent && this.state.overlayClients.has(clientId)) {
+        const overlayMeta = this.state.overlayClients.get(clientId);
+        return !this.state.token || overlayMeta.authorized;
+      }
+
+      // Default to true for other event types (like 'status' or 'hymn_index')
+      return !isOverlayEvent;
+    });
+
+    console.log(`Broadcasting ${payload.type} to ${targets.length} clients`);
     targets.forEach(ws => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(message);
