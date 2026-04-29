@@ -614,29 +614,40 @@ class HymnBroadcastServer {
             try {
               let targetPath = path.join(this.state.baseDir, reqPath);
               
-              if (fs.existsSync(targetPath) && fs.statSync(targetPath).isDirectory()) {
-                targetPath = path.join(targetPath, 'index.html');
-              }
-
-              if (fs.existsSync(targetPath) && !targetPath.includes('..')) {
-                const content = await fs.promises.readFile(targetPath);
-                const ext = path.extname(targetPath).toLowerCase();
-                const contentType = ext === '.html' ? 'text/html' :
-                                  ext === '.css' ? 'text/css' :
-                                  ext === '.js' ? 'application/javascript' :
-                                  ext === '.png' ? 'image/png' :
-                                  ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' :
-                                  'application/octet-stream';
-                res.writeHead(200, { 'Content-Type': contentType });
-                res.end(content);
-              } else {
+              if (!fs.existsSync(targetPath) || targetPath.includes('..')) {
                 res.writeHead(404, { 'Content-Type': 'text/plain' });
                 res.end('Not Found');
+                return;
               }
+
+              const stats = await fs.promises.stat(targetPath);
+              if (stats.isDirectory()) {
+                const indexPath = path.join(targetPath, 'index.html');
+                if (fs.existsSync(indexPath)) {
+                  targetPath = indexPath;
+                } else {
+                  res.writeHead(403, { 'Content-Type': 'text/plain' });
+                  res.end('Directory listing not allowed');
+                  return;
+                }
+              }
+
+              const content = await fs.promises.readFile(targetPath);
+              const ext = path.extname(targetPath).toLowerCase();
+              const contentType = ext === '.html' ? 'text/html' :
+                                ext === '.css' ? 'text/css' :
+                                ext === '.js' ? 'application/javascript' :
+                                ext === '.png' ? 'image/png' :
+                                ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' :
+                                'application/octet-stream';
+              res.writeHead(200, { 'Content-Type': contentType });
+              res.end(content);
             } catch (err) {
               console.error(`Error serving file ${reqPath}:`, err);
-              res.writeHead(500, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ error: 'Internal Server Error' }));
+              if (!res.writableEnded) {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Internal Server Error' }));
+              }
             }
           })();
           break;

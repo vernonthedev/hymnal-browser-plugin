@@ -521,7 +521,7 @@ function connectSocket() {
     state.socket.close();
   }
 
-  state.socket = new WebSocket(`ws://127.0.0.1:${state.runtime.httpPort}`);
+  state.socket = new WebSocket(`ws://127.0.0.1:${state.runtime.wsPort}`);
   state.socket.addEventListener("open", () => {
     showToast("WebSocket connected", "info");
     state.socket.send(JSON.stringify({ cmd: "hello", role: "control" }));
