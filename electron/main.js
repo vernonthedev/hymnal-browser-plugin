@@ -1000,8 +1000,6 @@ app.commandLine.appendSwitch('--disable-software-rasterizer');
 
 app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
-  createWindow();
-  await startBackend();
 
   ipcMain.handle("runtime:get", async () => runtimeInfo);
   ipcMain.handle("clipboard:copy", async (_event, text) => {
@@ -1030,6 +1028,9 @@ app.whenReady().then(async () => {
     }
     return true;
   });
+
+  createWindow();
+  await startBackend();
 });
 
 app.on("before-quit", async (event) => {
