@@ -1,6 +1,6 @@
-const { existsSync, mkdirSync } = require("fs");
-const path = require("path");
-const { spawnSync } = require("child_process");
+import { existsSync, mkdirSync } from "fs";
+import * as path from "path";
+import { spawnSync } from "child_process";
 
 const root = path.resolve(__dirname, "..");
 const outputDir = path.join(root, "assets", "icons");
@@ -11,7 +11,7 @@ const iconGenCommand = process.platform === "win32"
 
 mkdirSync(outputDir, { recursive: true });
 
-function detectPython() {
+function detectPython(): string {
   const candidates = process.platform === "win32"
     ? [
         path.join(root, "env", "Scripts", "python.exe"),

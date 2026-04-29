@@ -1,121 +1,218 @@
+declare global {
+  interface Window {
+    desktopApi: {
+      getRuntime: () => Promise<any>;
+      copyText: (text: string) => Promise<boolean>;
+      openExternal: (target: string) => Promise<boolean>;
+      openPath: (target: string) => Promise<boolean>;
+      getVersion: () => Promise<string>;
+      getReleaseInfo: () => Promise<any>;
+      minimizeWindow: () => Promise<boolean>;
+      closeWindow: () => Promise<boolean>;
+      onBackendEvent: (callback: (payload: any) => void) => (() => void);
+    };
+  }
+}
+
 console.log("Renderer script loading");
 
 const MAX_LOG_LINES = 9;
 const MAX_FINDER_RESULTS = 6;
 
+interface RuntimeInfo {
+  version: string;
+  httpPort: number;
+  wsPort: number;
+  dataDir: string;
+  hymnsDir: string;
+  token: string;
+  overlayProfiles: any[];
+  overlayUrls: any[];
+}
+
+interface Status {
+  current_hymn: string;
+  line_index: number;
+  total_lines: number;
+  text: string;
+  previous_text: string;
+  next_text: string;
+  visible: boolean;
+  connected_clients: number;
+  control_clients: number;
+  style: any;
+  presets: Record<string, any>;
+}
+
+interface Hymn {
+  number: string;
+  preview: string;
+}
+
+interface Elements {
+  serverPhase: HTMLElement;
+  serverPorts: HTMLElement;
+  hymnInput: HTMLInputElement;
+  hymnSearchResults: HTMLElement;
+  hymnSearchPopover: HTMLElement;
+  finderResultsCount: HTMLElement;
+  finderSelectionNumber: HTMLElement;
+  finderSelectionPreview: HTMLElement;
+  loadBtn: HTMLButtonElement;
+  prevBtn: HTMLButtonElement;
+  nextBtn: HTMLButtonElement;
+  resetBtn: HTMLButtonElement;
+  blankBtn: HTMLButtonElement;
+  showBtn: HTMLButtonElement;
+  retriggerBtn: HTMLButtonElement;
+  reloadIndexBtn: HTMLButtonElement;
+  openUrlsBtn: HTMLButtonElement;
+  openHelpBtn: HTMLButtonElement;
+  openAboutBtn: HTMLButtonElement;
+  windowMinimizeBtn: HTMLButtonElement;
+  windowCloseBtn: HTMLButtonElement;
+  prevLinePreview: HTMLElement;
+  currentLinePreview: HTMLElement;
+  nextLinePreview: HTMLElement;
+  currentHymn: HTMLElement;
+  lineMeta: HTMLElement;
+  overlayCount: HTMLElement;
+  visibilityMeta: HTMLElement;
+  overlayUrlList: HTMLElement;
+  copyDiagnosticsBtn: HTMLButtonElement;
+  openHymnsBtn: HTMLButtonElement;
+  logOutput: HTMLElement;
+  toastRegion: HTMLElement;
+  modalOverlay: HTMLElement;
+  modalEyebrow: HTMLElement;
+  modalTitle: HTMLElement;
+  modalBody: HTMLElement;
+  modalCloseBtn: HTMLButtonElement;
+  speakerTemplate: HTMLSelectElement;
+  fontSize: HTMLSelectElement;
+  alignment: HTMLSelectElement;
+  animation: HTMLSelectElement;
+  safeMargin: HTMLInputElement;
+  speaker: HTMLInputElement;
+  presetSelect: HTMLSelectElement;
+  presetName: HTMLInputElement;
+  applyPresetBtn: HTMLButtonElement;
+  savePresetBtn: HTMLButtonElement;
+}
+
 const state = {
-  runtime: null,
-  status: null,
-  socket: null,
-  hymnIndex: [],
-  presets: {},
+  runtime: null as RuntimeInfo | null,
+  status: null as Status | null,
+  socket: null as WebSocket | null,
+  hymnIndex: [] as Hymn[],
+  presets: {} as Record<string, any>,
   appVersion: "0.0.0",
-  releaseInfo: null,
-  reconnectTimer: null,
-  styleUpdateTimer: null,
-  logLines: [],
+  releaseInfo: null as any,
+  reconnectTimer: null as number | null,
+  styleUpdateTimer: null as number | null,
+  logLines: [] as string[],
   pickerDismissed: false,
 };
 
-let elements = null;
+let elements: Elements | null = null;
 
-function initElements() {
+function initElements(): void {
   elements = {
-    serverPhase: document.getElementById("server-phase"),
-    serverPorts: document.getElementById("server-ports"),
-    hymnInput: document.getElementById("hymn-input"),
-    hymnSearchResults: document.getElementById("hymn-search-results"),
-    hymnSearchPopover: document.getElementById("hymn-search-popover"),
-    finderResultsCount: document.getElementById("finder-results-count"),
-    finderSelectionNumber: document.getElementById("finder-selection-number"),
-    finderSelectionPreview: document.getElementById("finder-selection-preview"),
-    loadBtn: document.getElementById("load-btn"),
-    prevBtn: document.getElementById("prev-btn"),
-    nextBtn: document.getElementById("next-btn"),
-    resetBtn: document.getElementById("reset-btn"),
-    blankBtn: document.getElementById("blank-btn"),
-    showBtn: document.getElementById("show-btn"),
-    retriggerBtn: document.getElementById("retrigger-btn"),
-    reloadIndexBtn: document.getElementById("reload-index-btn"),
-    openUrlsBtn: document.getElementById("open-urls-btn"),
-    openHelpBtn: document.getElementById("open-help-btn"),
-    openAboutBtn: document.getElementById("open-about-btn"),
-    windowMinimizeBtn: document.getElementById("window-minimize-btn"),
-    windowCloseBtn: document.getElementById("window-close-btn"),
-    prevLinePreview: document.getElementById("prev-line-preview"),
-    currentLinePreview: document.getElementById("current-line-preview"),
-    nextLinePreview: document.getElementById("next-line-preview"),
-    currentHymn: document.getElementById("current-hymn"),
-    lineMeta: document.getElementById("line-meta"),
-    overlayCount: document.getElementById("overlay-count"),
-    visibilityMeta: document.getElementById("visibility-meta"),
-    overlayUrlList: document.getElementById("overlay-url-list"),
-    copyDiagnosticsBtn: document.getElementById("copy-diagnostics-btn"),
-    openHymnsBtn: document.getElementById("open-hymns-btn"),
-    logOutput: document.getElementById("log-output"),
-    toastRegion: document.getElementById("toast-region"),
-    modalOverlay: document.getElementById("modal-overlay"),
-    modalEyebrow: document.getElementById("modal-eyebrow"),
-    modalTitle: document.getElementById("modal-title"),
-    modalBody: document.getElementById("modal-body"),
-    modalCloseBtn: document.getElementById("modal-close-btn"),
-    speakerTemplate: document.getElementById("speaker-template-select"),
-    fontSize: document.getElementById("font-size-select"),
-    alignment: document.getElementById("alignment-select"),
-    animation: document.getElementById("animation-select"),
-    safeMargin: document.getElementById("safe-margin-input"),
-    speaker: document.getElementById("speaker-input"),
-    presetSelect: document.getElementById("preset-select"),
-    presetName: document.getElementById("preset-name-input"),
-    applyPresetBtn: document.getElementById("apply-preset-btn"),
-    savePresetBtn: document.getElementById("save-preset-btn"),
+    serverPhase: document.getElementById("server-phase") as HTMLElement,
+    serverPorts: document.getElementById("server-ports") as HTMLElement,
+    hymnInput: document.getElementById("hymn-input") as HTMLInputElement,
+    hymnSearchResults: document.getElementById("hymn-search-results") as HTMLElement,
+    hymnSearchPopover: document.getElementById("hymn-search-popover") as HTMLElement,
+    finderResultsCount: document.getElementById("finder-results-count") as HTMLElement,
+    finderSelectionNumber: document.getElementById("finder-selection-number") as HTMLElement,
+    finderSelectionPreview: document.getElementById("finder-selection-preview") as HTMLElement,
+    loadBtn: document.getElementById("load-btn") as HTMLButtonElement,
+    prevBtn: document.getElementById("prev-btn") as HTMLButtonElement,
+    nextBtn: document.getElementById("next-btn") as HTMLButtonElement,
+    resetBtn: document.getElementById("reset-btn") as HTMLButtonElement,
+    blankBtn: document.getElementById("blank-btn") as HTMLButtonElement,
+    showBtn: document.getElementById("show-btn") as HTMLButtonElement,
+    retriggerBtn: document.getElementById("retrigger-btn") as HTMLButtonElement,
+    reloadIndexBtn: document.getElementById("reload-index-btn") as HTMLButtonElement,
+    openUrlsBtn: document.getElementById("open-urls-btn") as HTMLButtonElement,
+    openHelpBtn: document.getElementById("open-help-btn") as HTMLButtonElement,
+    openAboutBtn: document.getElementById("open-about-btn") as HTMLButtonElement,
+    windowMinimizeBtn: document.getElementById("window-minimize-btn") as HTMLButtonElement,
+    windowCloseBtn: document.getElementById("window-close-btn") as HTMLButtonElement,
+    prevLinePreview: document.getElementById("prev-line-preview") as HTMLElement,
+    currentLinePreview: document.getElementById("current-line-preview") as HTMLElement,
+    nextLinePreview: document.getElementById("next-line-preview") as HTMLElement,
+    currentHymn: document.getElementById("current-hymn") as HTMLElement,
+    lineMeta: document.getElementById("line-meta") as HTMLElement,
+    overlayCount: document.getElementById("overlay-count") as HTMLElement,
+    visibilityMeta: document.getElementById("visibility-meta") as HTMLElement,
+    overlayUrlList: document.getElementById("overlay-url-list") as HTMLElement,
+    copyDiagnosticsBtn: document.getElementById("copy-diagnostics-btn") as HTMLButtonElement,
+    openHymnsBtn: document.getElementById("open-hymns-btn") as HTMLButtonElement,
+    logOutput: document.getElementById("log-output") as HTMLElement,
+    toastRegion: document.getElementById("toast-region") as HTMLElement,
+    modalOverlay: document.getElementById("modal-overlay") as HTMLElement,
+    modalEyebrow: document.getElementById("modal-eyebrow") as HTMLElement,
+    modalTitle: document.getElementById("modal-title") as HTMLElement,
+    modalBody: document.getElementById("modal-body") as HTMLElement,
+    modalCloseBtn: document.getElementById("modal-close-btn") as HTMLButtonElement,
+    speakerTemplate: document.getElementById("speaker-template-select") as HTMLSelectElement,
+    fontSize: document.getElementById("font-size-select") as HTMLSelectElement,
+    alignment: document.getElementById("alignment-select") as HTMLSelectElement,
+    animation: document.getElementById("animation-select") as HTMLSelectElement,
+    safeMargin: document.getElementById("safe-margin-input") as HTMLInputElement,
+    speaker: document.getElementById("speaker-input") as HTMLInputElement,
+    presetSelect: document.getElementById("preset-select") as HTMLSelectElement,
+    presetName: document.getElementById("preset-name-input") as HTMLInputElement,
+    applyPresetBtn: document.getElementById("apply-preset-btn") as HTMLButtonElement,
+    savePresetBtn: document.getElementById("save-preset-btn") as HTMLButtonElement,
   };
 }
 
-function renderLogs() {
-  if (!elements.logOutput) {
+function renderLogs(): void {
+  if (!elements!.logOutput) {
     return;
   }
-  elements.logOutput.textContent = state.logLines.length
+  elements!.logOutput.textContent = state.logLines.length
     ? state.logLines.join("\n")
     : "Waiting for backend logs...";
 }
 
-function appendLog(message) {
+function appendLog(message: string): void {
   const line = `[${new Date().toLocaleTimeString()}] ${message}`;
   state.logLines = [line, ...state.logLines].slice(0, MAX_LOG_LINES);
   renderLogs();
 }
 
-function showToast(message, level = "info") {
+function showToast(message: string, level: string = "info"): void {
   const toast = document.createElement("div");
   toast.className = `toast toast-${level}`;
   toast.textContent = message;
-  elements.toastRegion.appendChild(toast);
+  elements!.toastRegion.appendChild(toast);
   window.setTimeout(() => toast.remove(), 3500);
 }
 
-function closeModal() {
-  elements.modalOverlay?.classList.add("is-hidden");
+function closeModal(): void {
+  elements!.modalOverlay?.classList.add("is-hidden");
 }
 
-function openModal({ eyebrow, title, body }) {
+function openModal({ eyebrow, title, body }: { eyebrow: string; title: string; body: string }): void {
   if (
-    !elements.modalOverlay ||
-    !elements.modalEyebrow ||
-    !elements.modalTitle ||
-    !elements.modalBody
+    !elements!.modalOverlay ||
+    !elements!.modalEyebrow ||
+    !elements!.modalTitle ||
+    !elements!.modalBody
   ) {
     return;
   }
 
-  elements.modalEyebrow.textContent = eyebrow;
-  elements.modalTitle.textContent = title;
-  elements.modalBody.innerHTML = body;
-  elements.modalOverlay.classList.remove("is-hidden");
+  elements!.modalEyebrow.textContent = eyebrow;
+  elements!.modalTitle.textContent = title;
+  elements!.modalBody.innerHTML = body;
+  elements!.modalOverlay.classList.remove("is-hidden");
 }
 
-function buildUrlsModal() {
+function buildUrlsModal(): string {
   if (!state.runtime?.overlayUrls?.length) {
     return `
       <div class="modal-copy">
@@ -128,7 +225,7 @@ function buildUrlsModal() {
     <div class="modal-list">
       ${state.runtime.overlayUrls
         .map(
-          (overlay) => `
+          (overlay: any) => `
             <article class="modal-card">
               <div class="modal-card-header">
                 <strong>${overlay.name}</strong>
@@ -147,7 +244,7 @@ function buildUrlsModal() {
   `;
 }
 
-function buildHelpModal() {
+function buildHelpModal(): string {
   return `
     <div class="modal-copy">
       <p>Use hymn number search to load lyrics quickly, then control progression with keyboard shortcuts or the transport buttons.</p>
@@ -175,7 +272,7 @@ function buildHelpModal() {
   `;
 }
 
-function buildAboutModal() {
+function buildAboutModal(): string {
   const releaseVersion = state.releaseInfo?.version || "Unavailable";
   const releaseDate = state.releaseInfo?.releasedOn || "Unavailable";
   const releaseSummary = state.releaseInfo?.summary || [];
@@ -209,7 +306,7 @@ function buildAboutModal() {
           <div class="modal-card-header"><strong>Latest Changes</strong><span>${releaseSummary.length}</span></div>
           ${
             releaseSummary.length
-              ? `<ul class="modal-bullets">${releaseSummary.map((item) => `<li>${item}</li>`).join("")}</ul>`
+              ? `<ul class="modal-bullets">${releaseSummary.map((item: string) => `<li>${item}</li>`).join("")}</ul>`
               : "<p>No changelog summary available.</p>"
           }
         </article>
@@ -218,12 +315,12 @@ function buildAboutModal() {
   `;
 }
 
-function setLifecycle(phase, message) {
-  elements.serverPhase.textContent = message;
-  elements.serverPhase.className = `phase phase-${phase}`;
+function setLifecycle(phase: string, message: string): void {
+  elements!.serverPhase.textContent = message;
+  elements!.serverPhase.className = `phase phase-${phase}`;
 }
 
-function createIcon(iconName) {
+function createIcon(iconName: string): string {
   if (iconName === "copy") {
     return `
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -239,14 +336,14 @@ function createIcon(iconName) {
   `;
 }
 
-function renderOverlayUrls() {
+function renderOverlayUrls(): void {
   if (!state.runtime) {
-    elements.overlayUrlList.innerHTML =
+    elements!.overlayUrlList.innerHTML =
       '<p class="result-preview">Waiting for runtime details...</p>';
     return;
   }
 
-  elements.overlayUrlList.innerHTML = "";
+  elements!.overlayUrlList.innerHTML = "";
   for (const overlay of state.runtime.overlayUrls) {
     const card = document.createElement("div");
     card.className = "url-card";
@@ -276,52 +373,52 @@ function renderOverlayUrls() {
     openBtn.addEventListener("click", async () => {
       await window.desktopApi.openExternal(overlay.url);
     });
-    elements.overlayUrlList.appendChild(card);
+    elements!.overlayUrlList.appendChild(card);
   }
 }
 
-function renderHymnOptions() {
+function renderHymnOptions(): void {
   return;
 }
 
-function renderPresets() {
-  elements.presetSelect.innerHTML = "";
+function renderPresets(): void {
+  elements!.presetSelect.innerHTML = "";
   for (const name of Object.keys(state.presets)) {
     const option = document.createElement("option");
     option.value = name;
     option.textContent = name;
-    elements.presetSelect.appendChild(option);
+    elements!.presetSelect.appendChild(option);
   }
 }
 
-function syncStyleForm(style = {}) {
-  if (document.activeElement !== elements.fontSize) {
-    elements.fontSize.value = style.fontSizePreset || "md";
+function syncStyleForm(style: any = {}): void {
+  if (document.activeElement !== elements!.fontSize) {
+    elements!.fontSize.value = style.fontSizePreset || "md";
   }
-  if (document.activeElement !== elements.alignment) {
-    elements.alignment.value = style.alignment || "center";
+  if (document.activeElement !== elements!.alignment) {
+    elements!.alignment.value = style.alignment || "center";
   }
-  if (document.activeElement !== elements.animation) {
-    elements.animation.value = style.animation || "pop";
+  if (document.activeElement !== elements!.animation) {
+    elements!.animation.value = style.animation || "pop";
   }
-  if (document.activeElement !== elements.safeMargin) {
-    elements.safeMargin.value = String(style.safeMargin ?? 80);
+  if (document.activeElement !== elements!.safeMargin) {
+    elements!.safeMargin.value = String(style.safeMargin ?? 80);
   }
-  if (document.activeElement !== elements.speaker) {
-    elements.speaker.value = style.speakerLabel || "";
+  if (document.activeElement !== elements!.speaker) {
+    elements!.speaker.value = style.speakerLabel || "";
   }
-  if (document.activeElement !== elements.speakerTemplate) {
-    elements.speakerTemplate.value = style.speakerLabel || "";
+  if (document.activeElement !== elements!.speakerTemplate) {
+    elements!.speakerTemplate.value = style.speakerLabel || "";
   }
 }
 
-function normalizeText(value) {
+function normalizeText(value: any): string {
   return String(value || "")
     .trim()
     .toLowerCase();
 }
 
-function getHymnTitle(item) {
+function getHymnTitle(item: Hymn): string {
   const preview = String(item?.preview || "").trim();
   if (!preview) {
     return "Untitled hymn";
@@ -332,7 +429,7 @@ function getHymnTitle(item) {
   return firstSegment || firstLine;
 }
 
-function getMatchingHymns(query) {
+function getMatchingHymns(query: string): Hymn[] {
   const normalizedQuery = normalizeText(query);
   if (!normalizedQuery) {
     return state.hymnIndex.slice(0, MAX_FINDER_RESULTS);
@@ -349,8 +446,8 @@ function getMatchingHymns(query) {
     .slice(0, MAX_FINDER_RESULTS);
 }
 
-function getSelectedHymn() {
-  const typed = normalizeText(elements.hymnInput.value);
+function getSelectedHymn(): Hymn | null {
+  const typed = normalizeText(elements!.hymnInput.value);
   if (typed) {
     const exactMatch = state.hymnIndex.find(
       (item) =>
@@ -377,37 +474,37 @@ function getSelectedHymn() {
   return null;
 }
 
-function renderFinderSpotlight() {
+function renderFinderSpotlight(): void {
   const selectedHymn = getSelectedHymn();
 
   if (!selectedHymn) {
-    elements.finderSelectionNumber.textContent = "No hymn selected";
-    elements.finderSelectionPreview.textContent =
+    elements!.finderSelectionNumber.textContent = "No hymn selected";
+    elements!.finderSelectionPreview.textContent =
       "Type a number to pull matching hymns into the quick rail.";
     return;
   }
 
-  elements.finderSelectionNumber.textContent = `Hymn ${selectedHymn.number}`;
-  elements.finderSelectionPreview.textContent = getHymnTitle(selectedHymn);
+  elements!.finderSelectionNumber.textContent = `Hymn ${selectedHymn.number}`;
+  elements!.finderSelectionPreview.textContent = getHymnTitle(selectedHymn);
 }
 
-function renderFinderResults() {
-  if (!elements.hymnSearchResults || !elements.finderResultsCount) {
+function renderFinderResults(): void {
+  if (!elements!.hymnSearchResults || !elements!.finderResultsCount) {
     return;
   }
-  const results = getMatchingHymns(elements.hymnInput.value);
+  const results = getMatchingHymns(elements!.hymnInput.value);
   const activeNumber = getSelectedHymn()?.number;
-  const query = normalizeText(elements.hymnInput.value);
-  elements.finderResultsCount.textContent = `${results.length} hymn${results.length === 1 ? "" : "s"}`;
-  elements.hymnSearchPopover?.classList.toggle(
+  const query = normalizeText(elements!.hymnInput.value);
+  elements!.finderResultsCount.textContent = `${results.length} hymn${results.length === 1 ? "" : "s"}`;
+  elements!.hymnSearchPopover?.classList.toggle(
     "is-hidden",
     !query || results.length === 0,
   );
   if (state.pickerDismissed) {
-    elements.hymnSearchPopover?.classList.add("is-hidden");
+    elements!.hymnSearchPopover?.classList.add("is-hidden");
   }
 
-  elements.hymnSearchResults.innerHTML = "";
+  elements!.hymnSearchResults.innerHTML = "";
 
   for (const hymn of results) {
     const button = document.createElement("button");
@@ -424,49 +521,49 @@ function renderFinderResults() {
       </div>
     `;
     button.addEventListener("click", () => {
-      elements.hymnInput.value = hymn.number;
+      elements!.hymnInput.value = hymn.number;
       state.pickerDismissed = true;
       renderFinderSpotlight();
       renderFinderResults();
-      elements.hymnSearchPopover?.classList.add("is-hidden");
+      elements!.hymnSearchPopover?.classList.add("is-hidden");
     });
     button.addEventListener("dblclick", () => {
-      elements.hymnInput.value = hymn.number;
+      elements!.hymnInput.value = hymn.number;
       state.pickerDismissed = true;
       sendCommand({ cmd: "load", hymn: hymn.number });
-      elements.hymnSearchPopover?.classList.add("is-hidden");
+      elements!.hymnSearchPopover?.classList.add("is-hidden");
     });
-    elements.hymnSearchResults.appendChild(button);
+    elements!.hymnSearchResults.appendChild(button);
   }
 
   if (!results.length) {
-    elements.hymnSearchResults.innerHTML = "";
+    elements!.hymnSearchResults.innerHTML = "";
   }
 }
 
-function renderStatus() {
+function renderStatus(): void {
   const status = state.status;
   const runtime = state.runtime;
 
   // Use runtime ports as fallback if status is not yet available
   const httpPort = status?.http_port || runtime?.httpPort || "-";
   const wsPort = status?.ws_port || runtime?.wsPort || "-";
-  
-  elements.serverPorts.textContent = `HTTP ${httpPort}, WS ${wsPort}`;
-  
+
+  elements!.serverPorts.textContent = `HTTP ${httpPort}, WS ${wsPort}`;
+
   if (!status) {
     return;
   }
 
-  elements.currentHymn.textContent = status.current_hymn || "-";
-  elements.lineMeta.textContent = status.total_lines
+  elements!.currentHymn.textContent = status.current_hymn || "-";
+  elements!.lineMeta.textContent = status.total_lines
     ? `${status.line_index + 1}/${status.total_lines}`
     : "0/0";
-  elements.overlayCount.textContent = String(status.connected_clients || 0);
-  elements.visibilityMeta.textContent = status.visible ? "Shown" : "Blank";
-  elements.currentLinePreview.textContent = status.text || "(No text)";
-  elements.prevLinePreview.textContent = status.previous_text || "-";
-  elements.nextLinePreview.textContent = status.next_text || "-";
+  elements!.overlayCount.textContent = String(status.connected_clients || 0);
+  elements!.visibilityMeta.textContent = status.visible ? "Shown" : "Blank";
+  elements!.currentLinePreview.textContent = status.text || "(No text)";
+  elements!.prevLinePreview.textContent = status.previous_text || "-";
+  elements!.nextLinePreview.textContent = status.next_text || "-";
   syncStyleForm(status.style || {});
 
   if (status.presets) {
@@ -478,7 +575,7 @@ function renderStatus() {
   renderFinderResults();
 }
 
-async function fetchJson(route) {
+async function fetchJson(route: string): Promise<any> {
   if (!state.runtime) {
     throw new Error("Runtime is not available yet.");
   }
@@ -489,7 +586,7 @@ async function fetchJson(route) {
   return response.json();
 }
 
-async function refreshIndexes() {
+async function refreshIndexes(): Promise<void> {
   try {
     console.log("Refreshing indexes...");
     showToast("Loading hymns...", "info");
@@ -504,11 +601,11 @@ async function refreshIndexes() {
     renderFinderResults();
   } catch (error) {
     console.error("Failed to refresh indexes:", error);
-    showToast("Failed to load hymns: " + error.message, "error");
+    showToast("Failed to load hymns: " + (error as Error).message, "error");
   }
 }
 
-function sendCommand(payload) {
+function sendCommand(payload: any): void {
   if (!state.socket || state.socket.readyState !== WebSocket.OPEN) {
     showToast("Backend socket is not ready.", "error");
     return;
@@ -516,14 +613,16 @@ function sendCommand(payload) {
   state.socket.send(JSON.stringify(payload));
 }
 
-function connectSocket() {
+function connectSocket(): void {
   if (!state.runtime) {
     showToast("No runtime, cannot connect socket", "error");
     return;
   }
 
   showToast("Connecting WebSocket...", "info");
-  window.clearTimeout(state.reconnectTimer);
+  if (state.reconnectTimer) {
+    window.clearTimeout(state.reconnectTimer);
+  }
   if (state.socket) {
     state.socket.close();
   }
@@ -531,7 +630,7 @@ function connectSocket() {
   state.socket = new WebSocket(`ws://127.0.0.1:${state.runtime.wsPort}`);
   state.socket.addEventListener("open", () => {
     showToast("WebSocket connected", "info");
-    state.socket.send(JSON.stringify({ cmd: "hello", role: "control" }));
+    state.socket!.send(JSON.stringify({ cmd: "hello", role: "control" }));
   });
   state.socket.addEventListener("message", (event) => {
     const payload = JSON.parse(event.data);
@@ -574,24 +673,26 @@ function connectSocket() {
   });
 }
 
-function buildStylePayload() {
+function buildStylePayload(): any {
   return {
-    fontSizePreset: elements.fontSize.value,
-    alignment: elements.alignment.value,
-    animation: elements.animation.value,
-    safeMargin: Number(elements.safeMargin.value),
-    speakerLabel: elements.speaker.value.trim(),
+    fontSizePreset: elements!.fontSize.value,
+    alignment: elements!.alignment.value,
+    animation: elements!.animation.value,
+    safeMargin: Number(elements!.safeMargin.value),
+    speakerLabel: elements!.speaker.value.trim(),
   };
 }
 
-function queueStyleUpdate() {
-  window.clearTimeout(state.styleUpdateTimer);
+function queueStyleUpdate(): void {
+  if (state.styleUpdateTimer) {
+    window.clearTimeout(state.styleUpdateTimer);
+  }
   state.styleUpdateTimer = window.setTimeout(() => {
     sendCommand({ cmd: "update_style", style: buildStylePayload() });
   }, 180);
 }
 
-async function copyDiagnostics() {
+async function copyDiagnostics(): Promise<void> {
   const diagnostics = {
     appVersion: state.appVersion,
     runtime: state.runtime,
@@ -602,156 +703,156 @@ async function copyDiagnostics() {
   showToast("Diagnostics copied.");
 }
 
-function bindEvents() {
-  elements.loadBtn.addEventListener("click", () => {
-    sendCommand({ cmd: "load", hymn: elements.hymnInput.value.trim() });
+function bindEvents(): void {
+  elements!.loadBtn.addEventListener("click", () => {
+    sendCommand({ cmd: "load", hymn: elements!.hymnInput.value.trim() });
   });
-  elements.prevBtn.addEventListener("click", () =>
+  elements!.prevBtn.addEventListener("click", () =>
     sendCommand({ cmd: "prev" }),
   );
-  elements.nextBtn.addEventListener("click", () =>
+  elements!.nextBtn.addEventListener("click", () =>
     sendCommand({ cmd: "next" }),
   );
-  elements.resetBtn.addEventListener("click", () =>
+  elements!.resetBtn.addEventListener("click", () =>
     sendCommand({ cmd: "reset" }),
   );
-  elements.blankBtn.addEventListener("click", () =>
+  elements!.blankBtn.addEventListener("click", () =>
     sendCommand({ cmd: "blank" }),
   );
-  elements.showBtn.addEventListener("click", () =>
+  elements!.showBtn.addEventListener("click", () =>
     sendCommand({ cmd: "show" }),
   );
-  elements.retriggerBtn.addEventListener("click", () =>
+  elements!.retriggerBtn.addEventListener("click", () =>
     sendCommand({ cmd: "retrigger" }),
   );
-  elements.reloadIndexBtn.addEventListener("click", () =>
+  elements!.reloadIndexBtn.addEventListener("click", () =>
     sendCommand({ cmd: "reload_hymns" }),
   );
-  elements.openUrlsBtn.addEventListener("click", () => {
+  elements!.openUrlsBtn.addEventListener("click", () => {
     openModal({
       eyebrow: "URLs",
       title: "Overlay URLs",
       body: buildUrlsModal(),
     });
   });
-  elements.openHelpBtn.addEventListener("click", () => {
+  elements!.openHelpBtn.addEventListener("click", () => {
     openModal({
       eyebrow: "Help",
       title: "Using the console",
       body: buildHelpModal(),
     });
   });
-  elements.openAboutBtn.addEventListener("click", () => {
+  elements!.openAboutBtn.addEventListener("click", () => {
     openModal({
       eyebrow: "About",
       title: "About this application",
       body: buildAboutModal(),
     });
   });
-  elements.windowMinimizeBtn.addEventListener("click", async () => {
+  elements!.windowMinimizeBtn.addEventListener("click", async () => {
     await window.desktopApi.minimizeWindow();
   });
-  elements.windowCloseBtn.addEventListener("click", async () => {
+  elements!.windowCloseBtn.addEventListener("click", async () => {
     await window.desktopApi.closeWindow();
   });
-  elements.copyDiagnosticsBtn?.addEventListener("click", copyDiagnostics);
-  elements.modalCloseBtn?.addEventListener("click", closeModal);
-  elements.openHymnsBtn.addEventListener("click", async () => {
+  elements!.copyDiagnosticsBtn?.addEventListener("click", copyDiagnostics);
+  elements!.modalCloseBtn?.addEventListener("click", closeModal);
+  elements!.openHymnsBtn.addEventListener("click", async () => {
     if (state.runtime?.hymnsDir) {
       await window.desktopApi.openPath(state.runtime.hymnsDir);
     }
   });
 
-  elements.speakerTemplate.addEventListener("change", () => {
-    elements.speaker.value = elements.speakerTemplate.value;
+  elements!.speakerTemplate.addEventListener("change", () => {
+    elements!.speaker.value = elements!.speakerTemplate.value;
     queueStyleUpdate();
   });
 
   [
-    elements.fontSize,
-    elements.alignment,
-    elements.animation,
-    elements.safeMargin,
+    elements!.fontSize,
+    elements!.alignment,
+    elements!.animation,
+    elements!.safeMargin,
   ].forEach((input) => {
     input.addEventListener("change", () => {
       queueStyleUpdate();
     });
   });
 
-  [elements.speaker].forEach((input) => {
+  [elements!.speaker].forEach((input) => {
     input.addEventListener("input", queueStyleUpdate);
     input.addEventListener("change", queueStyleUpdate);
   });
 
-  elements.applyPresetBtn.addEventListener("click", () => {
-    sendCommand({ cmd: "apply_preset", name: elements.presetSelect.value });
+  elements!.applyPresetBtn.addEventListener("click", () => {
+    sendCommand({ cmd: "apply_preset", name: elements!.presetSelect.value });
   });
 
-  elements.savePresetBtn.addEventListener("click", () => {
-    const name = elements.presetName.value.trim();
+  elements!.savePresetBtn.addEventListener("click", () => {
+    const name = elements!.presetName.value.trim();
     if (!name) {
       showToast("Preset name is required.", "error");
       return;
     }
     sendCommand({ cmd: "update_style", style: buildStylePayload() });
     sendCommand({ cmd: "save_preset", name });
-    elements.presetName.value = "";
+    elements!.presetName.value = "";
   });
 
-  elements.hymnInput.addEventListener("input", () => {
+  elements!.hymnInput.addEventListener("input", () => {
     state.pickerDismissed = false;
     renderFinderSpotlight();
     renderFinderResults();
   });
 
-  elements.hymnInput.addEventListener("keydown", (event) => {
+  elements!.hymnInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      const hymnValue = elements.hymnInput.value.trim();
+      const hymnValue = elements!.hymnInput.value.trim();
       if (hymnValue) {
         sendCommand({ cmd: "load", hymn: hymnValue });
         state.pickerDismissed = true;
         renderFinderResults();
-        elements.hymnSearchPopover?.classList.add("is-hidden");
+        elements!.hymnSearchPopover?.classList.add("is-hidden");
       }
     }
   });
 
-  elements.hymnInput.addEventListener("focus", () => {
+  elements!.hymnInput.addEventListener("focus", () => {
     renderFinderResults();
   });
 
-  elements.loadBtn.addEventListener("click", () => {
+  elements!.loadBtn.addEventListener("click", () => {
     state.pickerDismissed = true;
-    elements.hymnSearchPopover?.classList.add("is-hidden");
+    elements!.hymnSearchPopover?.classList.add("is-hidden");
   });
 
   document.addEventListener("click", (event) => {
-    const target = event.target;
+    const target = event.target as Node;
     if (
-      elements.hymnSearchPopover &&
+      elements!.hymnSearchPopover &&
       target instanceof Node &&
-      !elements.hymnSearchPopover.contains(target) &&
-      !elements.hymnInput.contains(target)
+      !elements!.hymnSearchPopover.contains(target) &&
+      !elements!.hymnInput.contains(target)
     ) {
       state.pickerDismissed = true;
-      elements.hymnSearchPopover.classList.add("is-hidden");
+      elements!.hymnSearchPopover.classList.add("is-hidden");
     }
   });
 
-  elements.modalOverlay?.addEventListener("click", (event) => {
-    if (event.target === elements.modalOverlay) {
+  elements!.modalOverlay?.addEventListener("click", (event) => {
+    if (event.target === elements!.modalOverlay) {
       closeModal();
     }
   });
 
-  elements.modalBody?.addEventListener("click", async (event) => {
-    const target = event.target;
+  elements!.modalBody?.addEventListener("click", async (event) => {
+    const target = event.target as HTMLElement;
     if (!(target instanceof HTMLElement)) {
       return;
     }
 
-    const actionElement = target.closest("[data-modal-action]");
+    const actionElement = target.closest("[data-modal-action]") as HTMLElement;
     if (!(actionElement instanceof HTMLElement)) {
       return;
     }
@@ -801,7 +902,7 @@ function bindEvents() {
   });
 }
 
-async function init() {
+async function init(): Promise<void> {
   console.log("Initializing renderer");
   initElements();
 
@@ -825,7 +926,7 @@ async function init() {
   }
 
   console.log("Setting up backend event listener");
-  window.desktopApi.onBackendEvent(async (event) => {
+  window.desktopApi.onBackendEvent(async (event: any) => {
     console.log("Received backend event:", event);
     showToast(`Event: ${event.type}`, "info");
     if (event.type === "runtime") {

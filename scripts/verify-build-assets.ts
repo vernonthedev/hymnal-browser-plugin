@@ -1,5 +1,5 @@
-const { existsSync } = require("fs");
-const path = require("path");
+import { existsSync } from "fs";
+import * as path from "path";
 
 const root = path.resolve(__dirname, "..");
 

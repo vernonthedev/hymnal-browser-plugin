@@ -1,11 +1,11 @@
-const path = require("path");
-const { spawnSync } = require("child_process");
+import * as path from "path";
+import { spawnSync } from "child_process";
 
 const root = path.resolve(__dirname, "..");
 const unpackedRoot = path.join(root, "dist", "electron", "win-unpacked").toLowerCase();
 const escapedUnpackedRoot = unpackedRoot.replace(/'/g, "''");
 
-function cleanupWindowsUnpackedProcesses() {
+function cleanupWindowsUnpackedProcesses(): void {
   if (process.platform !== "win32") {
     return;
   }
