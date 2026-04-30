@@ -42,6 +42,8 @@ interface Status {
   control_clients: number;
   style: any;
   presets: Record<string, any>;
+  http_port?: number;
+  ws_port?: number;
 }
 
 interface Hymn {
@@ -467,8 +469,8 @@ function getSelectedHymn(): Hymn | null {
   if (state.status?.current_hymn) {
     return state.hymnIndex.find(
       (item) =>
-        normalizeText(item.number) === normalizeText(state.status.current_hymn),
-    );
+        normalizeText(item.number) === normalizeText(state.status?.current_hymn),
+    ) || null;
   }
 
   return null;
@@ -914,23 +916,8 @@ async function init(): Promise<void> {
   console.log("Desktop API available");
   bindEvents();
   renderFinderResults();
-  state.appVersion = await window.desktopApi.getVersion();
-  state.releaseInfo = await window.desktopApi.getReleaseInfo();
-  const runtime = await window.desktopApi.getRuntime();
-  if (runtime) {
-    console.log("Initial runtime available:", runtime);
-    state.runtime = runtime;
-    renderOverlayUrls();
-    connectSocket();
-    await refreshIndexes();
-  }
-
-  console.log("Setting up backend event listener");
   window.desktopApi.onBackendEvent(async (event: any) => {
-    console.log("Received backend event:", event);
-    showToast(`Event: ${event.type}`, "info");
     if (event.type === "runtime") {
-      showToast(`Runtime received: ${event.runtime.httpPort}`, "info");
       state.runtime = event.runtime;
       renderOverlayUrls();
       renderStatus();
@@ -961,6 +948,14 @@ async function init(): Promise<void> {
       appendLog(event.message);
     }
   });
+
+  const runtime = await window.desktopApi.getRuntime();
+  if (runtime) {
+    state.runtime = runtime;
+    renderOverlayUrls();
+    connectSocket();
+    await refreshIndexes();
+  }
 }
 
 if (document.readyState === 'loading') {

@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "Electron desktop controller for the SDA Hymnal lower thirds backend",
   "type": "module",
-  "main": "electron/main.ts",
+  "main": "electron/main.js",
   "author": {
     "name": "vernonthedev",
     "email": "techjaja2@gmail.com",

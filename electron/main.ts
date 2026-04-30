@@ -4,7 +4,7 @@ import * as path from "path";
 import * as net from "net";
 import * as crypto from "crypto";
 import * as http from "http";
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
@@ -294,7 +294,7 @@ class HymnBroadcastServer {
     return this.state.lines[this.state.lineIndex];
   }
 
-  handleWebSocketConnection(ws: WebSocket.WebSocket): void {
+  handleWebSocketConnection(ws: WebSocket): void {
     // Mark as overlay client initially
     const clientId = Math.random() * 1000000 | 0;
     this.state.overlayClients.set(clientId, {
@@ -334,7 +334,7 @@ class HymnBroadcastServer {
     });
   }
 
-  handleWebSocketMessage(ws: WebSocket.WebSocket, message: string): void {
+  handleWebSocketMessage(ws: WebSocket, message: string): void {
     try {
       const data = JSON.parse(message);
       const clientId = (ws as any).clientId;
@@ -353,7 +353,7 @@ class HymnBroadcastServer {
     }
   }
 
-  handleHello(ws: WebSocket.WebSocket, data: any, clientId: number): void {
+  handleHello(ws: WebSocket, data: any, clientId: number): void {
     const role = data.role || 'overlay';
     if (role === 'control') {
       this.markClientRole(clientId, 'control');
@@ -364,7 +364,7 @@ class HymnBroadcastServer {
     }
   }
 
-  handleAuth(ws: WebSocket.WebSocket, data: any, clientId: number): void {
+  handleAuth(ws: WebSocket, data: any, clientId: number): void {
     const overlayMeta = this.state.overlayClients.get(clientId);
     if (!overlayMeta) {
       this.markClientRole(clientId, 'overlay');
@@ -389,7 +389,7 @@ class HymnBroadcastServer {
     }
   }
 
-  async handleCommand(ws: WebSocket.WebSocket, data: any, clientId: number): Promise<void> {
+  async handleCommand(ws: WebSocket, data: any, clientId: number): Promise<void> {
     // Check authorization for overlay clients
     if (this.state.overlayClients.has(clientId)) {
       const overlayMeta = this.state.overlayClients.get(clientId)!;
@@ -415,7 +415,7 @@ class HymnBroadcastServer {
     }
   }
 
-  handleWebSocketClose(ws: WebSocket.WebSocket): void {
+  handleWebSocketClose(ws: WebSocket): void {
     const clientId = (ws as any).clientId;
     if (!clientId) return;
 
@@ -624,8 +624,8 @@ class HymnBroadcastServer {
       if (this.state.controlClientIds.has(clientId)) return true;
 
       // Overlay clients receive overlay events if authorized
-      if (isOverlayEvent && this.state.overlayClients.has(clientId)) {
-        const overlayMeta = this.state.overlayClients.get(clientId);
+      const overlayMeta = this.state.overlayClients.get(clientId);
+      if (isOverlayEvent && overlayMeta) {
         return !this.state.token || overlayMeta.authorized;
       }
 
@@ -1035,7 +1035,6 @@ async function startBackend(): Promise<void> {
     };
     runtimeInfo.overlayUrls = overlayUrlsFromRuntime(runtimeInfo);
 
-    console.log("Sending runtime event to renderer");
     sendToRenderer("backend-event", { type: "runtime", runtime: runtimeInfo });
     sendToRenderer("backend-event", {
       type: "lifecycle",
@@ -1073,10 +1072,17 @@ function createWindow(): void {
     titleBarStyle: "hidden",
     backgroundColor: "#0a0c10",
     webPreferences: {
-      preload: path.join(__dirname, "preload.ts"),
+      preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
     },
+  });
+
+  mainWindow.webContents.on("did-fail-load", (_event, errorCode, errorDescription) => {
+    console.error(`[Main] Window failed to load: ${errorCode} ${errorDescription}`);
+  });
+
+  mainWindow.webContents.on("dom-ready", () => {
   });
 
   mainWindow.loadFile(path.join(__dirname, "renderer", "index.html"));
@@ -1092,7 +1098,9 @@ app.commandLine.appendSwitch('--disable-software-rasterizer');
 app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
 
-  ipcMain.handle("runtime:get", async () => runtimeInfo);
+  ipcMain.handle("runtime:get", async () => {
+    return runtimeInfo;
+  });
   ipcMain.handle("clipboard:copy", async (_event, text) => {
     clipboard.writeText(text);
     return true;
