@@ -1,107 +1,66 @@
-# Hymn Broadcast Console + Overlay Server
+# SDA Hymnal Desktop
+### Professional Hymn Broadcast Console & Overlay Server
 
-A unified Electron application for managing hymn overlays during live broadcasts. The backend is now integrated directly into the Electron main process, handling both HTTP and WebSocket services for a seamless, standalone experience.
+SDA Hymnal Desktop is a lightweight, all-in-one broadcast console designed for church media teams. It allows you to search, load, and control hymn lyrics with live previews, sending real-time updates to professional browser-based overlays for OBS, vMix, or any modern streaming software.
 
-<img width="1230" height="794" alt="Screenshot 2026-03-01 151446" src="https://github.com/user-attachments/assets/56296449-293f-4e0c-b5f4-3a06a515b919" />
+<img width="1230" height="794" alt="Application Screenshot" src="https://github.com/user-attachments/assets/56296449-293f-4e0c-b5f4-3a06a515b919" />
 
-## Architecture
+[!IMPORTANT]
+> This application requires ports 9999 (HTTP) and 8765 (WebSocket) to be available. The internal server starts automatically upon launch. Ensure you click the **URLs** button in the app header to retrieve the active links for your broadcast software.
 
-- **Integrated Backend**: Node.js HTTP + WebSocket server built into the Electron main process (replacing the legacy Python server).
-- `electron/`: desktop app main process, preload bridge, and renderer UI
-- `overlays/`: browser-source layouts for `lowerthird`, `stage`, and `lyrics`
-- `assets/`: shared overlay assets and legacy static styles
-- `hymns/`: flat `*.txt` hymn files
+## Key Features
 
-## Development
+*   **Lightning Fast Search:** Find any hymn in seconds by number or title using the numeric search rail.
+*   **Live Control Room:** Preview current, previous, and next lines before they go live on screen.
+*   **Real-time Styling:** Adjust font size, alignment, animations, and speaker labels on the fly without refreshing overlays.
+*   **Multi-Output Support:** Dedicated overlay profiles for Lower Thirds, Stage Displays, and Full-screen Lyrics.
+*   **Power-User Shortcuts:** Full keyboard control (Space, Enter, Arrows) for seamless operation during service.
+
+## Getting Started
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) (preferred) or [Node.js](https://nodejs.org/)
-- [Python 3.12+](https://www.python.org/) (required only for building app icons)
+*   [Bun](https://bun.sh/) (preferred) or [Node.js](https://nodejs.org/)
+*   [Python 3.12+](https://www.python.org/) (required only for building app icons)
 
-### Getting Started
+### Installation & Development
 
-```powershell
+```bash
 bun install
 bun dev
 ```
 
-The Electron app starts the backend automatically, chooses open ports if `9999` or `8765` are busy, and shows the active overlay URLs inside the UI.
+## Broadcast Integration
 
-## Overlay URLs
+1.  Launch SDA Hymnal Desktop.
+2.  Click the **URLs** button in the top right.
+3.  Copy the URL for your desired overlay (e.g., Lower Third).
+4.  In OBS or vMix, add a new **Browser Source**.
+5.  Paste the URL and set the size to **1920x1080**.
 
-Typical local URLs look like:
+## Development & Packaging
 
-```text
-http://127.0.0.1:9999/overlays/lowerthird.html?token=...&wsPort=8765
-http://127.0.0.1:9999/overlays/stage.html?token=...&wsPort=8765
-http://127.0.0.1:9999/overlays/lyrics.html?token=...&wsPort=8765
-```
-
-Paste the URL shown in the Electron app into an OBS or vMix browser source.
-
-## Packaging
-
-To create a production build for your platform:
-
-```powershell
+### Building Icons
+Packaging commands require generated icons. Run this once before your first distribution build:
+```bash
 bun run build:icons
-bun run dist
 ```
 
-If generated icons are missing, packaging commands now fail early with a clear preflight error telling you to run `bun run build:icons`.
-
-Platform-specific packaging commands:
-
-```powershell
-bun run dist:win
-bun run dist:mac
-bun run dist:linux
+### Creating Installers
+Generate production-ready installers for your platform:
+```bash
+bun run dist:win    # Windows (.exe, .nsis)
+bun run dist:mac    # macOS (.dmg)
+bun run dist:linux  # Linux (.AppImage, .deb)
 ```
-
-`electron-builder` is configured for Windows (`nsis`), macOS (`dmg`), and Linux (`AppImage`, `deb`).
 
 ## Automated Releases
 
-Pushes to `main` run semantic-release, update `CHANGELOG.md`, create a GitHub release, generate app icons from `assets/logo.png`, and then build platform installers for:
-
-- Windows: `.exe`
-- macOS: `.dmg`
-- Linux: `.AppImage` and `.deb`
-
-Those installer files are uploaded to the GitHub release automatically.
-
-Optional code-signing and notarization secrets for CI:
-
-- `WIN_CSC_LINK`
-- `WIN_CSC_KEY_PASSWORD`
-- `CSC_LINK`
-- `CSC_KEY_PASSWORD`
-- `APPLE_ID`
-- `APPLE_APP_SPECIFIC_PASSWORD`
-- `APPLE_TEAM_ID`
-
-## OBS or VMIX Setup
-
-Add New Browser Source
-URL:
-Replace ... with the token and wsPort shown in the Electron app
-
-```http
-# For the lower third overlay
-http://127.0.0.1:9999/overlays/lowerthird.html?token=...&wsPort=8765
-# For the stage overlay
-http://127.0.0.1:9999/overlays/stage.html?token=...&wsPort=8765
-# For the lyrics overlay
-http://127.0.0.1:9999/overlays/lyrics.html?token=...&wsPort=8765
-```
-
-Size:
-
-```http
-1920 -->width
-1080 -->height
-```
+Pushes to the main branch trigger an automated CI workflow that:
+- Runs semantic-release for versioning.
+- Updates CHANGELOG.md.
+- Generates platform-specific installers.
+- Uploads installers directly to a new GitHub Release.
 
 ## Contributing
 
