@@ -5,9 +5,6 @@ SDA Hymnal Desktop is a lightweight, all-in-one broadcast console designed for c
 
 <img width="1230" height="794" alt="Application Screenshot" src="https://github.com/user-attachments/assets/56296449-293f-4e0c-b5f4-3a06a515b919" />
 
-[!IMPORTANT]
-> This application requires ports 9999 (HTTP) and 8765 (WebSocket) to be available. The internal server starts automatically upon launch. Ensure you click the **URLs** button in the app header to retrieve the active links for your broadcast software.
-
 ## Key Features
 
 *   **Lightning Fast Search:** Find any hymn in seconds by number or title using the numeric search rail.
@@ -15,6 +12,9 @@ SDA Hymnal Desktop is a lightweight, all-in-one broadcast console designed for c
 *   **Real-time Styling:** Adjust font size, alignment, animations, and speaker labels on the fly without refreshing overlays.
 *   **Multi-Output Support:** Dedicated overlay profiles for Lower Thirds, Stage Displays, and Full-screen Lyrics.
 *   **Power-User Shortcuts:** Full keyboard control (Space, Enter, Arrows) for seamless operation during service.
+
+> [!IMPORTANT]
+> This application requires ports 9999 (HTTP) and 8765 (WebSocket) to be available. The internal server starts automatically upon launch. Ensure you click the **URLs** button in the app header to retrieve the active links for your broadcast software.
 
 ## Getting Started
 
