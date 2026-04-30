@@ -1,12 +1,12 @@
 # Hymn Broadcast Console + Overlay Server
 
-Electron now provides the operator control panel, while the Python backend remains the single source of truth for hymn state, overlay visibility, and live style settings. OBS or vMix still loads overlay pages from a localhost URL.
+A unified Electron application for managing hymn overlays during live broadcasts. The backend is now integrated directly into the Electron main process, handling both HTTP and WebSocket services for a seamless, standalone experience.
 
 <img width="1230" height="794" alt="Screenshot 2026-03-01 151446" src="https://github.com/user-attachments/assets/56296449-293f-4e0c-b5f4-3a06a515b919" />
 
 ## Architecture
 
-- `server.py`: HTTP + WebSocket backend bound to `127.0.0.1`
+- **Integrated Backend**: Node.js HTTP + WebSocket server built into the Electron main process (replacing the legacy Python server).
 - `electron/`: desktop app main process, preload bridge, and renderer UI
 - `overlays/`: browser-source layouts for `lowerthird`, `stage`, and `lyrics`
 - `assets/`: shared overlay assets and legacy static styles
@@ -14,18 +14,12 @@ Electron now provides the operator control panel, while the Python backend remai
 
 ## Development
 
-### Python backend prerequisites
+### Prerequisites
 
-```powershell
-py -3.13 -m venv env
-.\env\Scripts\activate
-pip install -r requirements.txt
-```
+- [Bun](https://bun.sh/) (preferred) or [Node.js](https://nodejs.org/)
+- [Python 3.12+](https://www.python.org/) (required only for building app icons)
 
-> [!IMPORTANT]
-> Python 3.13 is also supported. If you encounter issues, ensure you're using Python 3.12 or higher.
-
-### Electron app
+### Getting Started
 
 ```powershell
 bun install
@@ -48,20 +42,14 @@ Paste the URL shown in the Electron app into an OBS or vMix browser source.
 
 ## Packaging
 
-Build the backend executable first:
+To create a production build for your platform:
 
 ```powershell
 bun run build:icons
-bun run build:backend
+bun run dist
 ```
 
 If generated icons are missing, packaging commands now fail early with a clear preflight error telling you to run `bun run build:icons`.
-
-Then package the desktop app:
-
-```powershell
-bun run dist
-```
 
 Platform-specific packaging commands:
 
