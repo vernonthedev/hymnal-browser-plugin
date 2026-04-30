@@ -1,0 +1,20 @@
+commit-msg:
+  commands:
+    "lint commit message":
+      run: bun x commitlint --edit $1
+
+pre-commit:
+  parallel: true
+  commands:
+    eslint:
+      glob: "*.{js,ts,tsx,cjs,json}"
+      run: bun x eslint {staged_files} --fix && git add {staged_files}
+    
+    prettier:
+      glob: "*.{js,ts,tsx,json,md,css,html}"
+      run: bun x prettier --write {staged_files} && git add {staged_files}
+
+pre-push:
+  commands:
+    tsc-check:
+      run: bun x tsc --noEmit
