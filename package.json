@@ -30,15 +30,16 @@
         "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
         "icon": "assets/icons",
         "files": [
-            "electron/**/*",
+            "src/infrastructure/electron/**/*",
+            "src/ui/renderer/**/*",
             "assets/**/*",
-            "overlays/**/*",
+            "src/ui/overlays/**/*",
             "hymns/**/*",
             "README.md"
         ],
         "extraResources": [
             {
-                "from": "overlays",
+                "from": "src/ui/overlays",
                 "to": "overlays",
                 "filter": [
                     "**/*"
