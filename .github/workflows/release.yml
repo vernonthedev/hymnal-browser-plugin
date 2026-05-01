@@ -58,19 +58,16 @@ jobs:
         include:
           - os: windows-latest
             label: Windows
-            python: "3.12"
             build_command: bun run dist:win
             artifact_glob: |
               dist/electron/*-setup.exe
               dist/electron/*-portable.exe
           - os: macos-latest
             label: macOS
-            python: "3.12"
             build_command: bun run dist:mac
             artifact_glob: dist/electron/*.dmg
           - os: ubuntu-latest
             label: Linux
-            python: "3.12"
             build_command: bun run dist:linux
             artifact_glob: |
               dist/electron/*.AppImage
@@ -90,22 +87,11 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Install Python dependencies
-        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt pyinstaller
-
       - name: Generate app icons
         run: bun run build:icons
-
-      - name: Build backend binary
-        run: bun run build:backend
 
       - name: Configure signing environment
         shell: bash
