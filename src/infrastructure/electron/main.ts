@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell, clipboard, Menu } from "electron";
 import * as fs from "fs";
-import { BroadcastServer } from "../src/infrastructure/network/BroadcastServer";
+import { BroadcastServer } from "../network/BroadcastServer";
 import * as path from "path";
 import * as net from "net";
 import * as crypto from "crypto";

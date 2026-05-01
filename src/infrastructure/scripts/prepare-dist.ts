@@ -2,15 +2,17 @@ import * as path from "path";
 import { spawnSync } from "child_process";
 
 const root = path.resolve(__dirname, "..");
-const unpackedRoot = path.join(root, "dist", "electron", "win-unpacked").toLowerCase();
+const unpackedRoot = path
+    .join(root, "dist", "electron", "win-unpacked")
+    .toLowerCase();
 const escapedUnpackedRoot = unpackedRoot.replace(/'/g, "''");
 
 function cleanupWindowsUnpackedProcesses(): void {
-  if (process.platform !== "win32") {
-    return;
-  }
+    if (process.platform !== "win32") {
+        return;
+    }
 
-  const script = `
+    const script = `
     $targets = Get-Process -ErrorAction SilentlyContinue |
       Where-Object {
         $_.Path -and
@@ -22,19 +24,15 @@ function cleanupWindowsUnpackedProcesses(): void {
     }
   `;
 
-  const result = spawnSync(
-    "powershell",
-    ["-NoProfile", "-Command", script],
-    {
-      cwd: root,
-      stdio: "inherit",
-      shell: false,
-    },
-  );
+    const result = spawnSync("powershell", ["-NoProfile", "-Command", script], {
+        cwd: root,
+        stdio: "inherit",
+        shell: false,
+    });
 
-  if (result.status !== 0) {
-    process.exit(result.status || 1);
-  }
+    if (result.status !== 0) {
+        process.exit(result.status || 1);
+    }
 }
 
 cleanupWindowsUnpackedProcesses();

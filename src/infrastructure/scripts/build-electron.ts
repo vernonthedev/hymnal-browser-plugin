@@ -4,24 +4,26 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const root = path.resolve(__dirname, "..");
+const root = path.resolve(__dirname, "../../..");
 
 async function build() {
     await esbuild.build({
-        entryPoints: [path.join(root, "electron/preload.ts")],
+        entryPoints: [
+            path.join(root, "src/infrastructure/electron/preload.ts"),
+        ],
         bundle: true,
         platform: "node",
         target: "node18",
-        outfile: path.join(root, "electron/preload.cjs"),
+        outfile: path.join(root, "src/infrastructure/electron/preload.cjs"),
         format: "cjs",
         external: ["electron"],
     });
 
     await esbuild.build({
-        entryPoints: [path.join(root, "electron/renderer/renderer.ts")],
+        entryPoints: [path.join(root, "src/ui/renderer/renderer.ts")],
         bundle: true,
         target: "es2020",
-        outfile: path.join(root, "electron/renderer/renderer.js"),
+        outfile: path.join(root, "src/ui/renderer/renderer.js"),
         format: "iife",
     });
 

@@ -16,6 +16,6 @@
         "allowSyntheticDefaultImports": true,
         "typeRoots": ["node_modules/@types"]
     },
-    "include": ["electron/**/*", "scripts/**/*", "assets/**/*", "src/**/*"],
+    "include": ["src/**/*", "assets/**/*"],
     "exclude": ["node_modules", "dist"]
 }
