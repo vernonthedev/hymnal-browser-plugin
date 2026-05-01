@@ -1,6 +1,5 @@
 import * as fs from "fs";
-import { Style, DEFAULT_STYLE } from "../models/Style.js";
-import { DEFAULT_PRESETS } from "../models/Preset.js";
+import { Style, DEFAULT_STYLE, DEFAULT_PRESETS } from "../../types";
 
 function presetsToStyles(
     presets: Record<string, { style: Style }>

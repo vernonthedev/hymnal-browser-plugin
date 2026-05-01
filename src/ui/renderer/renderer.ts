@@ -123,6 +123,8 @@ const state = {
     styleUpdateTimer: null as number | null,
     logLines: [] as string[],
     pickerDismissed: false,
+    isConnecting: false,
+    shouldReconnect: true,
 };
 
 let elements: Elements | null = null;
@@ -702,12 +704,22 @@ function connectSocket(): void {
         return;
     }
 
+    if (
+        state.isConnecting ||
+        (state.socket && state.socket.readyState === WebSocket.OPEN)
+    ) {
+        return;
+    }
+
+    state.isConnecting = true;
     showToast("Connecting WebSocket...", "info");
     if (state.reconnectTimer) {
         window.clearTimeout(state.reconnectTimer);
+        state.reconnectTimer = null;
     }
     if (state.socket) {
         state.socket.close();
+        state.socket = null;
     }
 
     state.socket = new WebSocket(`ws://127.0.0.1:${state.runtime.wsPort}`);
@@ -757,8 +769,24 @@ function connectSocket(): void {
             renderPresets();
         }
     });
+    state.socket.addEventListener("open", () => {
+        state.isConnecting = false;
+    });
+
     state.socket.addEventListener("close", () => {
-        state.reconnectTimer = window.setTimeout(connectSocket, 1200);
+        state.isConnecting = false;
+        if (state.shouldReconnect) {
+            if (state.reconnectTimer) {
+                window.clearTimeout(state.reconnectTimer);
+            }
+            state.reconnectTimer = window.setTimeout(() => {
+                connectSocket();
+            }, 1200);
+        }
+    });
+
+    state.socket.addEventListener("error", () => {
+        state.isConnecting = false;
     });
 }
 

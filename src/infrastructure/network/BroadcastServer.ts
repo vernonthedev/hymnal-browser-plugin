@@ -5,46 +5,19 @@ import { WebSocketServer, WebSocket } from "ws";
 import {
     Style,
     DEFAULT_STYLE,
-    createStyle,
-    OverlayState,
-} from "../../domain/index";
+    OverlayMeta,
+    DEFAULT_OVERLAYS,
+    ServerConfig,
+    Hymn,
+} from "../../types";
 import { HymnIndexService } from "../../domain/services/HymnIndex";
 import { StyleManagerService } from "../../domain/services/StyleManager";
 import { BroadcastCommandHandler } from "../../application/commands/BroadcastCommandHandler";
-import {
-    BroadcastStatusUseCase,
-    OverlayProfile,
-} from "../../application/usecases/BroadcastStatusUseCase";
+import { BroadcastStatusUseCase } from "../../application/usecases/BroadcastStatusUseCase";
 
 const HEARTBEAT_INTERVAL_SECONDS = 10;
 const HEARTBEAT_TIMEOUT_SECONDS = 30;
 const HOST = "127.0.0.1";
-
-interface OverlayMeta {
-    lastPong: number;
-    authorized: boolean;
-    role: string;
-}
-
-const OVERLAYS: OverlayProfile[] = [
-    {
-        id: "lowerthird",
-        name: "Lower Third",
-        path: "/overlays/lowerthird.html",
-    },
-    { id: "stage", name: "Stage", path: "/overlays/stage.html" },
-    { id: "lyrics", name: "Lyrics", path: "/overlays/lyrics.html" },
-];
-
-interface ServerConfig {
-    baseDir: string;
-    dataDir: string;
-    hymnsDir: string;
-    presetsPath: string;
-    token: string;
-    httpPort: number;
-    wsPort: number;
-}
 
 export class BroadcastServer {
     private config: ServerConfig;
@@ -282,7 +255,7 @@ export class BroadcastServer {
             JSON.stringify({
                 type: "hello",
                 requiresAuth: !!this.config.token,
-                overlayProfiles: OVERLAYS,
+                overlayProfiles: DEFAULT_OVERLAYS,
                 httpPort: this.config.httpPort,
                 wsPort: this.config.wsPort,
             })
@@ -573,7 +546,7 @@ export class BroadcastServer {
             dataDir: this.config.dataDir,
             hymnsDir: this.config.hymnsDir,
             token: this.config.token,
-            overlayProfiles: OVERLAYS,
+            overlayProfiles: DEFAULT_OVERLAYS,
             overlayUrls: this.statusUseCase.getOverlayUrls(),
         };
     }

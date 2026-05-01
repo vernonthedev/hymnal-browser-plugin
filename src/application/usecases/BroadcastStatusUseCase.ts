@@ -1,51 +1,30 @@
 import {
     Style,
-    Hymn,
-    Preset,
     OverlayState,
     createOverlayState,
-} from "../../domain";
+    StatusPayload,
+    RuntimeInfo,
+    OverlayProfile,
+    OverlayUrl,
+} from "../../types";
 
-export interface StatusPayload {
-    version: string;
-    http_port: number;
-    ws_port: number;
-    current_hymn: string;
-    line_index: number;
-    total_lines: number;
-    text: string;
-    previous_text: string;
-    next_text: string;
-    visible: boolean;
-    connected_clients: number;
-    control_clients: number;
-    style: Style;
-    presets: Record<string, Style>;
-    overlay_profiles: OverlayProfile[];
-    last_error: string;
-    token_enabled: boolean;
-}
+export {
+    StatusPayload,
+    RuntimeInfo,
+    OverlayProfile,
+    OverlayUrl,
+    createOverlayState,
+};
 
-export interface RuntimeInfo {
-    version: string;
-    httpPort: number;
-    wsPort: number;
-    dataDir: string;
-    hymnsDir: string;
-    token: string;
-    overlayProfiles: OverlayProfile[];
-    overlayUrls: OverlayUrl[];
-}
-
-export interface OverlayProfile {
-    id: string;
-    name: string;
-    path: string;
-}
-
-export interface OverlayUrl extends OverlayProfile {
-    url: string;
-}
+const OVERLAYS: OverlayProfile[] = [
+    {
+        id: "lowerthird",
+        name: "Lower Third",
+        path: "/overlays/lowerthird.html",
+    },
+    { id: "stage", name: "Stage", path: "/overlays/stage.html" },
+    { id: "lyrics", name: "Lyrics", path: "/overlays/lyrics.html" },
+];
 
 export class BroadcastStatusUseCase {
     private version: string;
@@ -67,16 +46,6 @@ export class BroadcastStatusUseCase {
     private presets: Record<string, Style> = {};
     private connectedClients = 0;
     private controlClients = 0;
-
-    private overlayProfiles: OverlayProfile[] = [
-        {
-            id: "lowerthird",
-            name: "Lower Third",
-            path: "/overlays/lowerthird.html",
-        },
-        { id: "stage", name: "Stage", path: "/overlays/stage.html" },
-        { id: "lyrics", name: "Lyrics", path: "/overlays/lyrics.html" },
-    ];
 
     constructor(version: string, token: string) {
         this.version = version;
@@ -138,7 +107,7 @@ export class BroadcastStatusUseCase {
             control_clients: this.controlClients,
             style: this.style,
             presets: this.presets,
-            overlay_profiles: this.overlayProfiles,
+            overlay_profiles: OVERLAYS,
             last_error: this.lastError,
             token_enabled: !!this.token,
         };
@@ -162,16 +131,27 @@ export class BroadcastStatusUseCase {
     }
 
     private getCurrentText(): string {
-        if (!this.lines || this.lineIndex >= this.lines.length) {
-            return "";
-        }
+        if (!this.lines || this.lineIndex >= this.lines.length) return "";
         return this.lines[this.lineIndex];
     }
 
     getOverlayUrls(): OverlayUrl[] {
-        return this.overlayProfiles.map((profile) => ({
+        return OVERLAYS.map((profile) => ({
             ...profile,
             url: `http://127.0.0.1:${this.httpPort}${profile.path}?token=${encodeURIComponent(this.token)}&wsPort=${this.wsPort}`,
         }));
+    }
+
+    getRuntimeInfo(): RuntimeInfo {
+        return {
+            version: this.version,
+            httpPort: this.httpPort,
+            wsPort: this.wsPort,
+            dataDir: "",
+            hymnsDir: "",
+            token: this.token,
+            overlayProfiles: OVERLAYS,
+            overlayUrls: this.getOverlayUrls(),
+        };
     }
 }

@@ -3660,7 +3660,7 @@ var import_subprotocol = __toESM(require_subprotocol(), 1);
 var import_websocket = __toESM(require_websocket(), 1);
 var import_websocket_server = __toESM(require_websocket_server(), 1);
 
-// src/domain/models/Style.ts
+// src/types/style.ts
 var DEFAULT_STYLE = {
   fontSizePreset: "md",
   alignment: "center",
@@ -3669,29 +3669,14 @@ var DEFAULT_STYLE = {
   speakerLabel: ""
 };
 
-// src/domain/models/Preset.ts
-var DEFAULT_PRESETS = {
-  Default: { name: "Default", style: { ...DEFAULT_STYLE } },
-  Stage: {
-    name: "Stage",
-    style: {
-      fontSizePreset: "xl",
-      alignment: "center",
-      safeMargin: 120,
-      animation: "fade",
-      speakerLabel: ""
-    }
-  }
-};
-
-// src/domain/models/Hymn.ts
+// src/types/hymn.ts
 function sortHymnPath(filePath) {
   const stem = filePath.replace(/\.txt$/, "");
   const num = parseInt(stem, 10);
   return isNaN(num) ? [Number.MAX_SAFE_INTEGER, stem] : [num, stem];
 }
 
-// src/domain/value-objects/OverlayState.ts
+// src/types/server.ts
 function createOverlayState(partial = {}) {
   return {
     type: "state",
@@ -3702,19 +3687,24 @@ function createOverlayState(partial = {}) {
     totalLines: 0,
     text: "",
     visible: true,
-    style: {
-      fontSizePreset: "md",
-      alignment: "center",
-      safeMargin: 80,
-      animation: "pop",
-      speakerLabel: ""
-    },
+    style: { fontSizePreset: "md", alignment: "center", safeMargin: 80, animation: "pop", speakerLabel: "" },
     connectedClients: 0,
     controlClients: 0,
     error: "",
     ...partial
   };
 }
+var DEFAULT_OVERLAYS = [
+  { id: "lowerthird", name: "Lower Third", path: "/overlays/lowerthird.html" },
+  { id: "stage", name: "Stage", path: "/overlays/stage.html" },
+  { id: "lyrics", name: "Lyrics", path: "/overlays/lyrics.html" }
+];
+
+// src/types/preset.ts
+var DEFAULT_PRESETS = {
+  Default: { name: "Default", style: { fontSizePreset: "md", alignment: "center", safeMargin: 80, animation: "pop", speakerLabel: "" } },
+  Stage: { name: "Stage", style: { fontSizePreset: "xl", alignment: "center", safeMargin: 120, animation: "fade", speakerLabel: "" } }
+};
 
 // src/domain/services/HymnIndex.ts
 var fs = __toESM(require("fs"), 1);
@@ -3945,6 +3935,11 @@ var BroadcastCommandHandler = class {
 };
 
 // src/application/usecases/BroadcastStatusUseCase.ts
+var OVERLAYS = [
+  { id: "lowerthird", name: "Lower Third", path: "/overlays/lowerthird.html" },
+  { id: "stage", name: "Stage", path: "/overlays/stage.html" },
+  { id: "lyrics", name: "Lyrics", path: "/overlays/lyrics.html" }
+];
 var BroadcastStatusUseCase = class {
   constructor(version, token) {
     this.httpPort = 0;
@@ -3964,15 +3959,6 @@ var BroadcastStatusUseCase = class {
     this.presets = {};
     this.connectedClients = 0;
     this.controlClients = 0;
-    this.overlayProfiles = [
-      {
-        id: "lowerthird",
-        name: "Lower Third",
-        path: "/overlays/lowerthird.html"
-      },
-      { id: "stage", name: "Stage", path: "/overlays/stage.html" },
-      { id: "lyrics", name: "Lyrics", path: "/overlays/lyrics.html" }
-    ];
     this.version = version;
     this.token = token;
   }
@@ -4016,7 +4002,7 @@ var BroadcastStatusUseCase = class {
       control_clients: this.controlClients,
       style: this.style,
       presets: this.presets,
-      overlay_profiles: this.overlayProfiles,
+      overlay_profiles: OVERLAYS,
       last_error: this.lastError,
       token_enabled: !!this.token
     };
@@ -4038,16 +4024,26 @@ var BroadcastStatusUseCase = class {
     });
   }
   getCurrentText() {
-    if (!this.lines || this.lineIndex >= this.lines.length) {
-      return "";
-    }
+    if (!this.lines || this.lineIndex >= this.lines.length) return "";
     return this.lines[this.lineIndex];
   }
   getOverlayUrls() {
-    return this.overlayProfiles.map((profile) => ({
+    return OVERLAYS.map((profile) => ({
       ...profile,
       url: `http://127.0.0.1:${this.httpPort}${profile.path}?token=${encodeURIComponent(this.token)}&wsPort=${this.wsPort}`
     }));
+  }
+  getRuntimeInfo() {
+    return {
+      version: this.version,
+      httpPort: this.httpPort,
+      wsPort: this.wsPort,
+      dataDir: "",
+      hymnsDir: "",
+      token: this.token,
+      overlayProfiles: OVERLAYS,
+      overlayUrls: this.getOverlayUrls()
+    };
   }
 };
 
@@ -4055,15 +4051,6 @@ var BroadcastStatusUseCase = class {
 var HEARTBEAT_INTERVAL_SECONDS = 10;
 var HEARTBEAT_TIMEOUT_SECONDS = 30;
 var HOST = "127.0.0.1";
-var OVERLAYS = [
-  {
-    id: "lowerthird",
-    name: "Lower Third",
-    path: "/overlays/lowerthird.html"
-  },
-  { id: "stage", name: "Stage", path: "/overlays/stage.html" },
-  { id: "lyrics", name: "Lyrics", path: "/overlays/lyrics.html" }
-];
 var BroadcastServer = class {
   constructor(baseDir, dataDir, token, version) {
     this.httpServer = null;
@@ -4248,7 +4235,7 @@ var BroadcastServer = class {
       JSON.stringify({
         type: "hello",
         requiresAuth: !!this.config.token,
-        overlayProfiles: OVERLAYS,
+        overlayProfiles: DEFAULT_OVERLAYS,
         httpPort: this.config.httpPort,
         wsPort: this.config.wsPort
       })
@@ -4371,11 +4358,15 @@ var BroadcastServer = class {
       if (payload.type === "state") {
         this.broadcast(this.statusUseCase.getOverlayPayload("state"));
       } else if (payload.type === "visibility") {
-        this.broadcast(this.statusUseCase.getOverlayPayload("visibility"));
+        this.broadcast(
+          this.statusUseCase.getOverlayPayload("visibility")
+        );
       } else if (payload.type === "style") {
         this.broadcast(this.statusUseCase.getOverlayPayload("style"));
       } else if (payload.type === "retrigger") {
-        this.broadcast(this.statusUseCase.getOverlayPayload("retrigger"));
+        this.broadcast(
+          this.statusUseCase.getOverlayPayload("retrigger")
+        );
       } else if (payload.type === "hymn_index" || payload.type === "presets") {
         this.broadcast(result.payload);
         ws.send(JSON.stringify(result.payload));
@@ -4485,7 +4476,7 @@ var BroadcastServer = class {
       dataDir: this.config.dataDir,
       hymnsDir: this.config.hymnsDir,
       token: this.config.token,
-      overlayProfiles: OVERLAYS,
+      overlayProfiles: DEFAULT_OVERLAYS,
       overlayUrls: this.statusUseCase.getOverlayUrls()
     };
   }
@@ -4504,23 +4495,6 @@ var DEFAULT_HTTP_PORT = 9999;
 var DEFAULT_WS_PORT = 8765;
 var CHANGELOG_FILE = "CHANGELOG.md";
 var APP_VERSION = "2.0.0";
-var DEFAULT_STYLE2 = {
-  fontSizePreset: "md",
-  alignment: "center",
-  safeMargin: 80,
-  animation: "pop",
-  speakerLabel: ""
-};
-var DEFAULT_PRESETS2 = {
-  Default: { ...DEFAULT_STYLE2 },
-  Stage: {
-    fontSizePreset: "xl",
-    alignment: "center",
-    safeMargin: 120,
-    animation: "fade",
-    speakerLabel: ""
-  }
-};
 var mainWindow = null;
 var hymnBroadcastServer = null;
 var runtimeInfo = null;

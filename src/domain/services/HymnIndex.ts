@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { Hymn, sortHymnPath } from "../models/Hymn";
+import { Hymn, sortHymnPath } from "../../types";
 
 export class HymnIndexService {
     async buildIndex(hymnsDir: string): Promise<Hymn[]> {

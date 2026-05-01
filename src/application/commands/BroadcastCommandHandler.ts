@@ -1,17 +1,6 @@
-import { Style } from "../../domain";
+import { Style, Command, CommandResult } from "../../types";
 
-export interface Command {
-    cmd: string;
-    hymn?: string;
-    style?: Partial<Style>;
-    name?: string;
-}
-
-export interface CommandResult {
-    success: boolean;
-    error?: string;
-    payload?: unknown;
-}
+export { Command, CommandResult };
 
 export class BroadcastCommandHandler {
     private currentHymn = "1";
