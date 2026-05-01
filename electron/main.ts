@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell, clipboard, Menu } from "electron";
 import * as fs from "fs";
+import { BroadcastServer } from "../src/infrastructure/network/BroadcastServer";
 import * as path from "path";
 import * as net from "net";
 import * as crypto from "crypto";
@@ -130,7 +131,7 @@ interface StatusPayload {
 }
 
 let mainWindow: BrowserWindow | null = null;
-let hymnBroadcastServer: HymnBroadcastServer | null = null;
+let hymnBroadcastServer: BroadcastServer | null = null;
 let runtimeInfo: RuntimeInfo | null = null;
 
 // Backend Server Implementation
@@ -1200,24 +1201,15 @@ async function startBackend(): Promise<void> {
             message: "Server starting",
         });
 
-        hymnBroadcastServer = new HymnBroadcastServer(
+        hymnBroadcastServer = new BroadcastServer(
             baseDir,
             dataDir,
-            config.token
+            config.token,
+            APP_VERSION
         );
         await hymnBroadcastServer.start(httpPort, wsPort);
 
-        runtimeInfo = {
-            version: APP_VERSION,
-            httpPort: httpPort,
-            wsPort: wsPort,
-            dataDir: dataDir,
-            hymnsDir: hymnsDir,
-            token: config.token,
-            overlayProfiles: OVERLAYS,
-            overlayUrls: [],
-        };
-        runtimeInfo.overlayUrls = overlayUrlsFromRuntime(runtimeInfo);
+        runtimeInfo = hymnBroadcastServer.getRuntimeInfo();
 
         sendToRenderer("backend-event", {
             type: "runtime",
