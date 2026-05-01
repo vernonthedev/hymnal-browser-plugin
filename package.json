@@ -1,112 +1,124 @@
 {
-  "name": "sda-hymnal-desktop",
-  "version": "2.0.0",
-  "description": "Electron desktop controller for the SDA Hymnal lower thirds backend",
-  "main": "electron/main.js",
-  "author": {
-    "name": "vernonthedev",
-    "email": "techjaja2@gmail.com",
-    "url": "https://vernon.skope.au"
-  },
-  "license": "MIT",
-  "scripts": {
-    "dev": "electron .",
-    "start": "electron .",
-    "verify:build-assets": "node scripts/verify-build-assets.js",
-    "prepare:dist": "node scripts/prepare-dist.js",
-    "build:icons": "node scripts/build-icons.js",
-    "build:backend": "bun run verify:build-assets && node scripts/build-backend.js",
-    "dist": "bun run prepare:dist && bun run verify:build-assets && electron-builder --publish never",
-    "dist:dir": "bun run prepare:dist && bun run verify:build-assets && electron-builder --dir --publish never",
-    "dist:win": "bun run prepare:dist && bun run verify:build-assets && electron-builder --win nsis portable --publish never",
-    "dist:mac": "bun run prepare:dist && bun run verify:build-assets && electron-builder --mac dmg --publish never",
-    "dist:linux": "bun run prepare:dist && bun run verify:build-assets && electron-builder --linux AppImage deb --publish never"
-  },
-  "build": {
-    "appId": "com.sda.hymnal.desktop",
-    "productName": "Hymn Broadcast Console",
-    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
-    "icon": "assets/icons",
-    "files": [
-      "electron/**/*",
-      "assets/**/*",
-      "overlays/**/*",
-      "hymns/**/*",
-      "server.py",
-      "README.md",
-      "requirements.txt"
-    ],
-    "extraResources": [
-      {
-        "from": "dist/backend",
-        "to": "backend",
-        "filter": [
-          "**/*"
-        ]
-      },
-      {
-        "from": "overlays",
-        "to": "overlays",
-        "filter": [
-          "**/*"
-        ]
-      },
-      {
-        "from": "assets",
-        "to": "assets",
-        "filter": [
-          "overlay.css",
-          "overlay-client.js"
-        ]
-      },
-      {
-        "from": "hymns",
-        "to": "hymns",
-        "filter": [
-          "**/*"
-        ]
-      },
-      {
-        "from": "CHANGELOG.md",
-        "to": "CHANGELOG.md"
-      }
-    ],
-    "directories": {
-      "buildResources": "assets",
-      "output": "dist/electron"
+    "name": "sda-hymnal-desktop",
+    "version": "2.0.0",
+    "description": "Electron desktop controller for the SDA Hymnal lower thirds backend",
+    "type": "module",
+    "main": "electron/main.js",
+    "author": {
+        "name": "vernonthedev",
+        "email": "techjaja2@gmail.com",
+        "url": "https://vernon.skope.au"
     },
-    "win": {
-      "target": [
-        "nsis",
-        "portable"
-      ],
-      "icon": "assets/icons/app.ico"
+    "license": "MIT",
+    "scripts": {
+        "dev": "electron . --disable-gpu --disable-software-rasterizer",
+        "start": "electron . --disable-gpu --disable-software-rasterizer",
+        "verify:build-assets": "node scripts/verify-build-assets.js",
+        "prepare:dist": "node scripts/prepare-dist.js",
+        "build:icons": "node scripts/build-icons.js",
+        "dist": "npm run prepare:dist && npm run verify:build-assets && electron-builder --publish never",
+        "dist:dir": "npm run prepare:dist && npm run verify:build-assets && electron-builder --dir --publish never",
+        "dist:win": "npm run prepare:dist && npm run verify:build-assets && electron-builder --win nsis portable --publish never",
+        "dist:mac": "npm run prepare:dist && npm run verify:build-assets && electron-builder --mac dmg --publish never",
+        "dist:linux": "npm run prepare:dist && npm run verify:build-assets && electron-builder --linux AppImage deb --publish never"
     },
-    "nsis": {
-      "artifactName": "${productName}-${version}-${os}-${arch}-setup.${ext}"
+    "build": {
+        "appId": "com.sda.hymnal.desktop",
+        "productName": "Hymn Broadcast Console",
+        "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+        "icon": "assets/icons",
+        "files": [
+            "electron/**/*",
+            "assets/**/*",
+            "overlays/**/*",
+            "hymns/**/*",
+            "README.md"
+        ],
+        "extraResources": [
+            {
+                "from": "overlays",
+                "to": "overlays",
+                "filter": [
+                    "**/*"
+                ]
+            },
+            {
+                "from": "assets",
+                "to": "assets",
+                "filter": [
+                    "overlay.css",
+                    "overlay-client.js"
+                ]
+            },
+            {
+                "from": "hymns",
+                "to": "hymns",
+                "filter": [
+                    "**/*"
+                ]
+            },
+            {
+                "from": "CHANGELOG.md",
+                "to": "CHANGELOG.md"
+            }
+        ],
+        "directories": {
+            "buildResources": "assets",
+            "output": "dist/electron"
+        },
+        "win": {
+            "target": [
+                "nsis",
+                "portable"
+            ],
+            "icon": "assets/icons/app.ico"
+        },
+        "nsis": {
+            "artifactName": "${productName}-${version}-${os}-${arch}-setup.${ext}"
+        },
+        "portable": {
+            "artifactName": "${productName}-${version}-${os}-${arch}-portable.${ext}"
+        },
+        "mac": {
+            "target": "dmg",
+            "icon": "assets/icons/app.icns",
+            "hardenedRuntime": true,
+            "gatekeeperAssess": false
+        },
+        "linux": {
+            "category": "Utility",
+            "maintainer": "vernonthedev <techjaja2@gmail.com>",
+            "icon": "assets/icons",
+            "target": [
+                "AppImage",
+                "deb"
+            ]
+        }
     },
-    "portable": {
-      "artifactName": "${productName}-${version}-${os}-${arch}-portable.${ext}"
+    "dependencies": {
+        "ws": "^8.18.0"
     },
-    "mac": {
-      "target": "dmg",
-      "icon": "assets/icons/app.icns",
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false
+    "devDependencies": {
+        "@commitlint/cli": "^20.5.3",
+        "@commitlint/config-conventional": "^20.5.3",
+        "@types/node": "^25.6.0",
+        "@types/ws": "^8.18.1",
+        "commitizen": "^4.3.1",
+        "cz-conventional-changelog": "^3.3.0",
+        "electron": "^36.2.1",
+        "electron-builder": "^26.0.12",
+        "eslint": "9.10.0",
+        "eslint-config-prettier": "^10.1.8",
+        "globals": "^17.5.0",
+        "icon-gen": "^3.0.1",
+        "lefthook": "^2.1.6",
+        "prettier": "^3.8.3",
+        "typescript": "^6.0.3",
+        "typescript-eslint": "^8.59.1"
     },
-    "linux": {
-      "category": "Utility",
-      "maintainer": "vernonthedev <techjaja2@gmail.com>",
-      "icon": "assets/icons",
-      "target": [
-        "AppImage",
-        "deb"
-      ]
+    "config": {
+        "commitizen": {
+            "path": "./node_modules/cz-conventional-changelog"
+        }
     }
-  },
-  "devDependencies": {
-    "electron": "^36.2.1",
-    "electron-builder": "^26.0.12",
-    "icon-gen": "^3.0.1"
-  }
 }

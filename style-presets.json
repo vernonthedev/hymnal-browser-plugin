@@ -1,0 +1,16 @@
+{
+  "Default": {
+    "fontSizePreset": "md",
+    "alignment": "center",
+    "safeMargin": 80,
+    "animation": "pop",
+    "speakerLabel": ""
+  },
+  "Stage": {
+    "fontSizePreset": "xl",
+    "alignment": "center",
+    "safeMargin": 120,
+    "animation": "fade",
+    "speakerLabel": ""
+  }
+}

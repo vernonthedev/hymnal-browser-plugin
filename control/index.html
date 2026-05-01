@@ -19,7 +19,7 @@
 </div>
 
 <script>
-const ws = new WebSocket("ws://localhost:8765");
+const ws = new WebSocket(`ws://${window.location.host}`);
 
 function load(){
   const h = document.getElementById("hymn").value;
