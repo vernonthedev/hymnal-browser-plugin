@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v2.0.1...v2.0.2) (2026-05-01)
+
+
+### Bug Fixes
+
+* remove build:icons from CI (icons already committed) ([d0f4179](https://github.com/vernonthedev/hymnal-browser-plugin/commit/d0f417974d23ab32e6ea0d683dfca4b4f8b67e3c))
+
 ## [2.0.1](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v2.0.0...v2.0.1) (2026-05-01)
 
 
