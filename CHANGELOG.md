@@ -1,3 +1,31 @@
+# [1.6.0](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v1.5.0...v1.6.0) (2026-05-01)
+
+
+### Bug Fixes
+
+* fix the Electron main process for ES modules compatibility ([a0b2d95](https://github.com/vernonthedev/hymnal-browser-plugin/commit/a0b2d9520e83ff2b2c93d247caba35d3f025dbbf))
+* handle directory requests in static file server ([535f784](https://github.com/vernonthedev/hymnal-browser-plugin/commit/535f7849f42df06f537434400247783a7a620444))
+* register IPC handlers before window creation ([304b3a1](https://github.com/vernonthedev/hymnal-browser-plugin/commit/304b3a1d65a09f815be045590899ba5aefc4445a))
+* resolve 'Waiting for backend' hang and build process issues ([032e1a1](https://github.com/vernonthedev/hymnal-browser-plugin/commit/032e1a1630f326f286289e4d2e231c65dd698bf9))
+* resolve backend loading issues and implement async file I/O ([f2bd4e1](https://github.com/vernonthedev/hymnal-browser-plugin/commit/f2bd4e17da78d4a09aafe20d0d981e7d3cc7fa31))
+* resolve ui status indicators and broadcast synchronization ([86af246](https://github.com/vernonthedev/hymnal-browser-plugin/commit/86af246d156e889d0a4b425559d7ce8aac5fe436))
+* resolve websocket port mismatch and robust static file serving ([75d8c50](https://github.com/vernonthedev/hymnal-browser-plugin/commit/75d8c509191db678d0aad770684a21131929fb17))
+* simplify build script to use tsconfig.json fully ([7d81761](https://github.com/vernonthedev/hymnal-browser-plugin/commit/7d81761c1a44647906ed4f84b2284cbb7dc423b4))
+* update build script to specify moduleResolution on command line ([b3d2d5c](https://github.com/vernonthedev/hymnal-browser-plugin/commit/b3d2d5c5acf8488d6dde325ee38eb11de57962f5))
+* update Electron main.js to use Node.js backend ([79f0acc](https://github.com/vernonthedev/hymnal-browser-plugin/commit/79f0acc7f77bbb5f04603e56f6d52d03662eeab5))
+* update TypeScript config to use 'bundler' moduleResolution ([d9b79c0](https://github.com/vernonthedev/hymnal-browser-plugin/commit/d9b79c01aa9a7f1ade16be404a0920c7ddce679f))
+
+
+### Features
+
+* add Node.js dependencies and update build scripts ([a7880b5](https://github.com/vernonthedev/hymnal-browser-plugin/commit/a7880b5a67b3239e9b0c45b5fc045a93da2d47e4))
+* added commitlint configuration ([6cba3be](https://github.com/vernonthedev/hymnal-browser-plugin/commit/6cba3be2674179c55f19e9201f1722fdb39f8597))
+* added lefthook & commitlinting dependencies ([5221601](https://github.com/vernonthedev/hymnal-browser-plugin/commit/522160173d9750e56442ff01a76c3d8875847e82))
+* added the commitizen configuration ([aef101c](https://github.com/vernonthedev/hymnal-browser-plugin/commit/aef101ca7f9d50b97d938cdcebeefd79dbe3ba4e))
+* implement Node.js backend to replace Python server ([1a08153](https://github.com/vernonthedev/hymnal-browser-plugin/commit/1a0815351f47121d6b4f0e08fe08ce814865f983))
+* **linting:** completed eslint & commitlinting setup with bun, fixes [#6](https://github.com/vernonthedev/hymnal-browser-plugin/issues/6) ([94135f7](https://github.com/vernonthedev/hymnal-browser-plugin/commit/94135f75396225d5c1324d32cb5275fb08b16b6e))
+* update Electron to spawn Node.js backend instead of Python ([62039aa](https://github.com/vernonthedev/hymnal-browser-plugin/commit/62039aac1b7c15d0c845158f8ee698aa5542c554))
+
 # [1.5.0](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v1.4.0...v1.5.0) (2026-03-01)
 
 
