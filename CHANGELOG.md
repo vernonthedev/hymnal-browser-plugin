@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v2.0.0...v2.0.1) (2026-05-01)
+
+
+### Bug Fixes
+
+* remove Python steps from CI workflow ([17df265](https://github.com/vernonthedev/hymnal-browser-plugin/commit/17df2652ec18e48b434e672dc752e178a683c292))
+
 # [2.0.0](https://github.com/vernonthedev/hymnal-browser-plugin/compare/v1.6.0...v2.0.0) (2026-05-01)
 
 
