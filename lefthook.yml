@@ -18,3 +18,5 @@ pre-push:
   commands:
     tsc-check:
       run: bun x tsc --noEmit
+    test:
+      run: bun test
