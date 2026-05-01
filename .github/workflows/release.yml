@@ -90,9 +90,6 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Generate app icons
-        run: bun run build:icons
-
       - name: Configure signing environment
         shell: bash
         run: |
