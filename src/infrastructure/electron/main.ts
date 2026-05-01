@@ -6,10 +6,6 @@ import * as net from "net";
 import * as crypto from "crypto";
 import * as http from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const DEFAULT_HTTP_PORT = 9999;
 const DEFAULT_WS_PORT = 8765;
@@ -1251,7 +1247,10 @@ function createWindow(): void {
         titleBarStyle: "hidden",
         backgroundColor: "#0a0c10",
         webPreferences: {
-            preload: path.join(__dirname, "preload.cjs"),
+            preload: path.join(
+                app.getAppPath(),
+                "src/infrastructure/electron/preload.cjs"
+            ),
             contextIsolation: true,
             nodeIntegration: false,
         },
@@ -1268,7 +1267,9 @@ function createWindow(): void {
 
     mainWindow.webContents.on("dom-ready", () => {});
 
-    mainWindow.loadFile(path.join(__dirname, "renderer", "index.html"));
+    mainWindow.loadFile(
+        path.join(app.getAppPath(), "src/ui/renderer/index.html")
+    );
 }
 
 // Disable GPU acceleration to prevent crashes in headless environments
