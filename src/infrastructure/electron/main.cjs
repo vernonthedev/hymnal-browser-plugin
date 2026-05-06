@@ -4000,7 +4000,13 @@ var BroadcastCommandHandler = class {
       this.lastError = "No hymns in queue to load.";
       return { success: false, error: this.lastError };
     }
-    return { success: true, payload: { type: "load_next_from_queue", nextHymn: this.hymnQueue[0] } };
+    return {
+      success: true,
+      payload: {
+        type: "load_next_from_queue",
+        nextHymn: this.hymnQueue[0]
+      }
+    };
   }
   getCurrentText() {
     if (!this.lines || this.lineIndex >= this.lines.length) {
@@ -4187,7 +4193,9 @@ var BroadcastServer = class {
       this.lineIndex,
       this.visible
     );
-    this.statusUseCase.setHymnQueue(this.commandHandler.getState().hymnQueue);
+    this.statusUseCase.setHymnQueue(
+      this.commandHandler.getState().hymnQueue
+    );
     this.statusUseCase.setStyle(DEFAULT_STYLE);
     console.log("Hymns are initialized.");
   }
@@ -4277,7 +4285,13 @@ var BroadcastServer = class {
       let targetPath = path2.join(this.config.baseDir, reqPath);
       if (reqPath.startsWith("/overlays/") && !fs3.existsSync(targetPath)) {
         const overlayPath = reqPath.replace("/overlays/", "");
-        targetPath = path2.join(this.config.baseDir, "src", "ui", "overlays", overlayPath);
+        targetPath = path2.join(
+          this.config.baseDir,
+          "src",
+          "ui",
+          "overlays",
+          overlayPath
+        );
       }
       let realBase;
       let realTarget;
@@ -4490,12 +4504,17 @@ var BroadcastServer = class {
   }
   async handleLoadNextFromQueue(nextHymn, ws) {
     try {
-      const lines = await this.hymnIndexService.readLines(nextHymn, this.config.hymnsDir);
+      const lines = await this.hymnIndexService.readLines(
+        nextHymn,
+        this.config.hymnsDir
+      );
       if (!lines.length) {
-        ws.send(JSON.stringify({
-          type: "error",
-          message: `Hymn ${nextHymn} was not found or is empty.`
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            message: `Hymn ${nextHymn} was not found or is empty.`
+          })
+        );
         return;
       }
       this.commandHandler.setState({
@@ -4512,18 +4531,24 @@ var BroadcastServer = class {
         this.lineIndex,
         this.visible
       );
-      this.statusUseCase.setHymnQueue(this.commandHandler.getState().hymnQueue);
+      this.statusUseCase.setHymnQueue(
+        this.commandHandler.getState().hymnQueue
+      );
       this.broadcast(this.statusUseCase.getOverlayPayload("state"));
-      ws.send(JSON.stringify({
-        type: "status",
-        status: this.statusUseCase.getStatus()
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "status",
+          status: this.statusUseCase.getStatus()
+        })
+      );
     } catch (error) {
       console.error("Error loading next hymn from queue:", error);
-      ws.send(JSON.stringify({
-        type: "error",
-        message: "Failed to load next hymn from queue."
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "error",
+          message: "Failed to load next hymn from queue."
+        })
+      );
     }
   }
   handleWebSocketClose(ws) {

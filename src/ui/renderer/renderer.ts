@@ -699,7 +699,13 @@ function renderStatus(): void {
     elements!.visibilityMeta.textContent = status.visible ? "Shown" : "Blank";
     elements!.currentLinePreview.textContent = status.text || "(No text)";
     elements!.prevLinePreview.textContent = status.previous_text || "-";
-    elements!.nextLinePreview.textContent = status.next_text || "-";
+    // Show next hymn from queue if available, otherwise next line
+    const nextHymn = status.hymn_queue?.[0];
+    if (nextHymn) {
+        elements!.nextLinePreview.textContent = `Next: Hymn ${nextHymn}`;
+    } else {
+        elements!.nextLinePreview.textContent = status.next_text || "-";
+    }
     syncStyleForm(status.style || {});
 
     if (status.presets) {

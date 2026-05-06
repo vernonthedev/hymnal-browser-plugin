@@ -454,7 +454,12 @@
             : "Blank";
         elements.currentLinePreview.textContent = status.text || "(No text)";
         elements.prevLinePreview.textContent = status.previous_text || "-";
-        elements.nextLinePreview.textContent = status.next_text || "-";
+        const nextHymn = status.hymn_queue?.[0];
+        if (nextHymn) {
+            elements.nextLinePreview.textContent = `Next: Hymn ${nextHymn}`;
+        } else {
+            elements.nextLinePreview.textContent = status.next_text || "-";
+        }
         syncStyleForm(status.style || {});
         if (status.presets) {
             state.presets = status.presets;
