@@ -329,14 +329,17 @@ function createWindow(): void {
 
     mainWindow.webContents.on("dom-ready", () => {});
 
-    // Load the Vite-built renderer output in production, dev server in development
-    if (process.env.NODE_ENV === "development" || !app.isPackaged) {
-        mainWindow.loadFile(
-            path.join(app.getAppPath(), "src/ui/renderer/index.html")
-        );
+    // Load the Vite-built renderer output
+    // In development, we need to build the renderer first or use the dev server
+    const distIndex = path.join(
+        app.getAppPath(),
+        "src/ui/renderer/dist/index.html"
+    );
+    if (fs.existsSync(distIndex)) {
+        mainWindow.loadFile(distIndex);
     } else {
         mainWindow.loadFile(
-            path.join(app.getAppPath(), "src/ui/renderer/dist/index.html")
+            path.join(app.getAppPath(), "src/ui/renderer/index.html")
         );
     }
 }

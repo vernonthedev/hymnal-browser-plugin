@@ -13,6 +13,10 @@ export default defineConfig({
             input: path.resolve(__dirname, "src/ui/renderer/index.html"),
         },
     },
+    server: {
+        port: 5173,
+        strictPort: true,
+    },
     css: {
         postcss: path.resolve(__dirname, "postcss.config.js"),
     },

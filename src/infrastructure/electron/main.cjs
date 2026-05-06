@@ -4874,9 +4874,17 @@ function createWindow() {
   );
   mainWindow.webContents.on("dom-ready", () => {
   });
-  mainWindow.loadFile(
-    path3.join(import_electron.app.getAppPath(), "src/ui/renderer/index.html")
+  const distIndex = path3.join(
+    import_electron.app.getAppPath(),
+    "src/ui/renderer/dist/index.html"
   );
+  if (require("fs").existsSync(distIndex)) {
+    mainWindow.loadFile(distIndex);
+  } else {
+    mainWindow.loadFile(
+      path3.join(import_electron.app.getAppPath(), "src/ui/renderer/index.html")
+    );
+  }
 }
 import_electron.app.disableHardwareAcceleration();
 import_electron.app.commandLine.appendSwitch("--disable-gpu");

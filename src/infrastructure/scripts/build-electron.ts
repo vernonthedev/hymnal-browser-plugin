@@ -35,7 +35,7 @@ async function build() {
         external: ["electron"],
     });
 
-    // Build renderer UI with Vite
+    // Build renderer UI with Vite (production build for distribution)
     execSync("npx vite build --config vite.renderer.config.ts", {
         cwd: root,
         stdio: "inherit",
