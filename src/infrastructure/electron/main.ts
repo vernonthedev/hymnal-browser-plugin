@@ -300,10 +300,10 @@ function createWindow(): void {
     mainWindow = new BrowserWindow({
         width: 1180,
         height: 760,
-        minWidth: 1180,
-        minHeight: 760,
-        resizable: false,
-        maximizable: false,
+        minWidth: 800,
+        minHeight: 600,
+        resizable: true,
+        maximizable: true,
         fullscreenable: false,
         frame: false,
         titleBarStyle: "hidden",
@@ -381,6 +381,13 @@ app.whenReady().then(async () => {
     ipcMain.handle("window:close", async () => {
         if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.close();
+        }
+        return true;
+    });
+    ipcMain.handle("window:move", async (_event, dx: number, dy: number) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            const [x, y] = mainWindow.getPosition();
+            mainWindow.setPosition(x + dx, y + dy);
         }
         return true;
     });

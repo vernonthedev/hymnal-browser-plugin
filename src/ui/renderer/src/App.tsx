@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
     Search01Icon,
@@ -16,7 +16,6 @@ import {
     InformationCircleIcon,
     MinusSignCircleIcon,
     Cancel01Icon,
-    CheckmarkCircle01Icon,
     WifiConnected01Icon,
     WifiDisconnected01Icon,
 } from "@hugeicons/core-free-icons";
@@ -68,11 +67,6 @@ function getHymnTitle(item: Hymn) {
     const firstSegment = firstLine.split(/[-|:]/)[0].trim();
     return firstSegment || firstLine;
 }
-function escapeHtml(str: string) {
-    const d = document.createElement("div");
-    d.textContent = str;
-    return d.innerHTML;
-}
 
 export default function App() {
     const [runtime, setRuntime] = useState<Runtime | null>(null);
@@ -91,11 +85,13 @@ export default function App() {
         title: string;
         body: string;
     } | null>(null);
+    const [compactMode, setCompactMode] = useState(false);
 
     const searchInputRef = useRef<HTMLInputElement>(null);
     const runtimeRef = useRef<Runtime | null>(null);
     const socketRef = useRef<WebSocket | null>(null);
     const isConnectingRef = useRef(false);
+    const headerRef = useRef<HTMLElement>(null);
     const speakerRef = useRef<HTMLInputElement>(null);
     const fontSizeRef = useRef<HTMLSelectElement>(null);
     const alignmentRef = useRef<HTMLSelectElement>(null);
@@ -109,10 +105,50 @@ export default function App() {
         runtimeRef.current = runtime;
     }, [runtime]);
 
+    /* ─── Window Dragging ─── */
+    useEffect(() => {
+        const header = headerRef.current;
+        if (!header) return;
+
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+
+        const onMouseDown = (e: MouseEvent) => {
+            if ((e.target as HTMLElement).closest("button")) return;
+            isDragging = true;
+            startX = e.screenX;
+            startY = e.screenY;
+            e.preventDefault();
+        };
+
+        const onMouseMove = (e: MouseEvent) => {
+            if (!isDragging) return;
+            const dx = e.screenX - startX;
+            const dy = e.screenY - startY;
+            (window as any).desktopApi.moveWindow(dx, dy);
+            startX = e.screenX;
+            startY = e.screenY;
+        };
+
+        const onMouseUp = () => {
+            isDragging = false;
+        };
+
+        header.addEventListener("mousedown", onMouseDown);
+        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("mouseup", onMouseUp);
+
+        return () => {
+            header.removeEventListener("mousedown", onMouseDown);
+            window.removeEventListener("mousemove", onMouseMove);
+            window.removeEventListener("mouseup", onMouseUp);
+        };
+    }, []);
+
     /* ─── Init ─── */
     useEffect(() => {
         init();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     async function init() {
@@ -497,7 +533,10 @@ export default function App() {
             {/* Main Content */}
             <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Top bar */}
-                <header className="h-14 px-6 border-b border-border flex items-center justify-between shrink-0 bg-card">
+                <header
+                    ref={headerRef}
+                    className="h-14 px-6 border-b border-border flex items-center justify-between shrink-0 bg-card"
+                >
                     <div className="flex items-center gap-3">
                         <span className="text-sm font-semibold text-muted-foreground">
                             Selected:
@@ -509,6 +548,13 @@ export default function App() {
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setCompactMode(!compactMode)}
+                            className="h-8 px-3 rounded-lg border border-border text-xs font-semibold text-muted-foreground hover:bg-secondary/50 transition"
+                            title="Toggle Compact Mode"
+                        >
+                            {compactMode ? "Expand" : "Compact"}
+                        </button>
                         <WindowButton
                             onClick={() =>
                                 (window as any).desktopApi.minimizeWindow()
@@ -538,9 +584,13 @@ export default function App() {
                 </header>
 
                 {/* Workspace */}
-                <div className="flex-1 flex overflow-hidden p-4 gap-4">
+                <div
+                    className={`flex-1 flex overflow-hidden ${compactMode ? "p-2 gap-2" : "p-4 gap-4"}`}
+                >
                     {/* Left: Controls */}
-                    <section className="w-72 flex flex-col gap-3 overflow-y-auto pr-1 shrink-0">
+                    <section
+                        className={`${compactMode ? "w-56" : "w-72"} flex flex-col gap-3 overflow-y-auto pr-1 shrink-0`}
+                    >
                         <div className="space-y-0.5">
                             <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
                                 Hymn Controls
@@ -684,12 +734,16 @@ export default function App() {
 
                     {/* Center: Preview */}
                     <section className="flex-1 min-w-0 border border-border rounded-lg bg-card flex flex-col gap-3 overflow-hidden">
-                        <div className="px-4 pt-4 pb-2 flex items-center justify-between shrink-0">
+                        <div
+                            className={`${compactMode ? "px-2 pt-2 pb-1" : "px-4 pt-4 pb-2"} flex items-center justify-between shrink-0`}
+                        >
                             <div>
                                 <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
                                     Live Preview
                                 </p>
-                                <h2 className="text-base font-bold">
+                                <h2
+                                    className={`${compactMode ? "text-sm" : "text-base"} font-bold`}
+                                >
                                     Current Lyric
                                 </h2>
                             </div>
@@ -698,7 +752,9 @@ export default function App() {
                                 Live
                             </div>
                         </div>
-                        <div className="flex-1 border-t border-border flex flex-col p-4 gap-3 overflow-hidden">
+                        <div
+                            className={`flex-1 border-t border-border flex flex-col ${compactMode ? "p-2" : "p-4"} gap-3 overflow-hidden`}
+                        >
                             <div>
                                 <p className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground">
                                     Previous
@@ -758,16 +814,22 @@ export default function App() {
                     </section>
 
                     {/* Right: Styling */}
-                    <aside className="w-64 shrink-0 overflow-y-auto pr-1 flex flex-col gap-3">
+                    <aside
+                        className={`${compactMode ? "w-48" : "w-64"} shrink-0 overflow-y-auto pr-1 flex flex-col gap-3`}
+                    >
                         <div className="space-y-0.5">
                             <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
                                 Theme
                             </p>
-                            <h2 className="text-base font-bold">
+                            <h2
+                                className={`${compactMode ? "text-sm" : "text-base"} font-bold`}
+                            >
                                 Live Styling
                             </h2>
                         </div>
-                        <section className="border border-border rounded-lg bg-card p-3 space-y-2.5">
+                        <section
+                            className={`border border-border rounded-lg bg-card ${compactMode ? "p-2" : "p-3"} space-y-2.5`}
+                        >
                             <Label>Template</Label>
                             <select
                                 ref={speakerTemplateRef}
@@ -846,7 +908,9 @@ export default function App() {
                                 />
                             </div>
                         </section>
-                        <section className="border border-border rounded-lg bg-card p-3 space-y-2.5">
+                        <section
+                            className={`border border-border rounded-lg bg-card ${compactMode ? "p-2" : "p-3"} space-y-2.5`}
+                        >
                             <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
                                 Presets
                             </p>
