@@ -3850,6 +3850,9 @@ var BroadcastCommandHandler = class {
     this.lineIndex = state.lineIndex;
     this.visible = state.visible;
     this.style = state.style;
+    if (state.hymnQueue) {
+      this.hymnQueue = state.hymnQueue;
+    }
   }
   getState() {
     return {
