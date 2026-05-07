@@ -15,7 +15,13 @@ contextBridge.exposeInMainWorld("desktopApi", {
         ipcRenderer.invoke("app:getReleaseInfo"),
     minimizeWindow: (): Promise<boolean> =>
         ipcRenderer.invoke("window:minimize"),
+    maximizeWindow: (): Promise<boolean> =>
+        ipcRenderer.invoke("window:maximize"),
+    toggleMaximizeWindow: (): Promise<boolean> =>
+        ipcRenderer.invoke("window:toggleMaximize"),
     closeWindow: (): Promise<boolean> => ipcRenderer.invoke("window:close"),
+    moveWindow: (dx: number, dy: number): Promise<boolean> =>
+        ipcRenderer.invoke("window:move", dx, dy),
     onBackendEvent: (callback: (payload: any) => void): (() => void) => {
         const listener = (_event: any, payload: any) => callback(payload);
         ipcRenderer.on("backend-event", listener);

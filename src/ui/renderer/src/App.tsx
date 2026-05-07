@@ -18,6 +18,8 @@ import {
     Cancel01Icon,
     WifiConnected01Icon,
     WifiDisconnected01Icon,
+    SquareIcon,
+    Copy01Icon,
 } from "@hugeicons/core-free-icons";
 
 /* ─── Types ─── */
@@ -86,6 +88,7 @@ export default function App() {
         body: string;
     } | null>(null);
     const [compactMode, setCompactMode] = useState(false);
+    const [isMaximized, setIsMaximized] = useState(false);
 
     const searchInputRef = useRef<HTMLInputElement>(null);
     const runtimeRef = useRef<Runtime | null>(null);
@@ -562,6 +565,20 @@ export default function App() {
                             icon={
                                 <HugeiconsIcon
                                     icon={MinusSignCircleIcon}
+                                    size={16}
+                                    strokeWidth={1.5}
+                                />
+                            }
+                        />
+                        <WindowButton
+                            onClick={() =>
+                                (
+                                    window as any
+                                ).desktopApi.toggleMaximizeWindow()
+                            }
+                            icon={
+                                <HugeiconsIcon
+                                    icon={isMaximized ? Copy01Icon : SquareIcon}
                                     size={16}
                                     strokeWidth={1.5}
                                 />

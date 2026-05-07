@@ -4920,6 +4920,22 @@ import_electron.app.whenReady().then(async () => {
     }
     return true;
   });
+  import_electron.ipcMain.handle("window:maximize", async () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.maximize();
+    }
+    return true;
+  });
+  import_electron.ipcMain.handle("window:toggleMaximize", async () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+      } else {
+        mainWindow.maximize();
+      }
+    }
+    return true;
+  });
   import_electron.ipcMain.handle("window:close", async () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.close();
