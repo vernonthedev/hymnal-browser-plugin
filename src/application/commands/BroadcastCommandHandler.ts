@@ -23,12 +23,16 @@ export class BroadcastCommandHandler {
         lineIndex: number;
         visible: boolean;
         style: Style;
+        hymnQueue?: string[];
     }): void {
         this.currentHymn = state.currentHymn;
         this.lines = state.lines;
         this.lineIndex = state.lineIndex;
         this.visible = state.visible;
         this.style = state.style;
+        if (state.hymnQueue) {
+            this.hymnQueue = state.hymnQueue;
+        }
     }
 
     getState() {

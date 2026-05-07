@@ -53,6 +53,7 @@ interface Status {
     presets: Record<string, any>;
     http_port?: number;
     ws_port?: number;
+    hymn_queue?: string[];
 }
 
 interface Hymn {
