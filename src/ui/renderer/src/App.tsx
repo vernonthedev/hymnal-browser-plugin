@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
+import ReactMarkdown from "react-markdown";
 import {
     Search01Icon,
     BrowserIcon,
@@ -93,7 +94,9 @@ export default function App() {
     } | null>(null);
     const [compactMode, setCompactMode] = useState(false);
     const [isMaximized, setIsMaximized] = useState(false);
-    const [currentView, setCurrentView] = useState<"main" | "settings">("main");
+    const [currentView, setCurrentView] = useState<
+        "main" | "settings" | "presets"
+    >("main");
     const [theme, setTheme] = useState<"dark" | "light">("dark");
     const [showChangelog, setShowChangelog] = useState(false);
     const [changelogContent, setChangelogContent] = useState<string>("");
@@ -429,8 +432,8 @@ export default function App() {
                             />
                         }
                         label="Presets"
-                        onClick={() => {}}
-                        active={false}
+                        onClick={() => setCurrentView("presets")}
+                        active={currentView === "presets"}
                     />
                     <SidebarButton
                         icon={
@@ -604,16 +607,7 @@ export default function App() {
                     ref={headerRef}
                     className="h-14 px-6 border-b border-border flex items-center justify-between shrink-0 bg-card"
                 >
-                    <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold text-muted-foreground">
-                            Selected:
-                        </span>
-                        <span className="text-sm font-bold">
-                            {selectedHymn
-                                ? `Hymn ${selectedHymn.number} — ${getHymnTitle(selectedHymn)}`
-                                : "None"}
-                        </span>
-                    </div>
+                    <div className="flex items-center gap-3"></div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setCompactMode(!compactMode)}
@@ -1063,7 +1057,82 @@ export default function App() {
                             </section>
                         </aside>
                     </div>
-                ) : (
+                ) : currentView === "presets" ? (
+                    <div
+                        className={`flex-1 flex overflow-hidden ${compactMode ? "p-2 gap-2" : "p-4 gap-4"}`}
+                    >
+                        <section className="flex-1 flex flex-col gap-4 overflow-y-auto">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
+                                        Presets
+                                    </p>
+                                    <h2 className="text-base font-bold">
+                                        Style Presets
+                                    </h2>
+                                </div>
+                                <button
+                                    onClick={() => setCurrentView("main")}
+                                    className="h-9 px-4 rounded-lg border border-border bg-secondary hover:bg-secondary/80 transition text-xs font-semibold flex items-center gap-2"
+                                >
+                                    <HugeiconsIcon
+                                        icon={ArrowLeft01Icon}
+                                        size={14}
+                                        strokeWidth={1.5}
+                                    />
+                                    Back to Home
+                                </button>
+                            </div>
+
+                            <div className="p-4 rounded-lg border border-border bg-card space-y-3">
+                                <p className="text-sm text-muted-foreground">
+                                    Presets allow you to save and load different
+                                    style configurations for your hymn overlays.
+                                </p>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {Object.keys(presets).length > 0 ? (
+                                        Object.keys(presets).map(
+                                            (presetName) => (
+                                                <button
+                                                    key={presetName}
+                                                    onClick={() => {
+                                                        const preset = presets[
+                                                            presetName
+                                                        ] as Record<
+                                                            string,
+                                                            unknown
+                                                        >;
+                                                        sendCommand({
+                                                            cmd: "update_style",
+                                                            style: preset,
+                                                        });
+                                                        showToast(
+                                                            `Loaded preset: ${presetName}`,
+                                                            "success"
+                                                        );
+                                                    }}
+                                                    className="p-3 rounded-lg border border-border bg-secondary hover:bg-secondary/80 transition text-left"
+                                                >
+                                                    <p className="text-sm font-semibold">
+                                                        {presetName}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Click to load
+                                                    </p>
+                                                </button>
+                                            )
+                                        )
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground text-center py-4">
+                                            No presets saved yet. Create one
+                                            from the main controls.
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                ) : currentView === "settings" ? (
                     <div
                         className={`flex-1 flex overflow-hidden ${compactMode ? "p-2 gap-2" : "p-4 gap-4"}`}
                     >
@@ -1170,7 +1239,7 @@ export default function App() {
                             </div>
                         </section>
                     </div>
-                )}
+                ) : null}
             </main>
 
             {/* Toasts */}
@@ -1287,28 +1356,47 @@ export default function App() {
                                 </div>
                             ) : changelogContent ? (
                                 <div className="prose prose-sm dark:prose-invert max-w-none">
-                                    <div
-                                        dangerouslySetInnerHTML={{
-                                            __html: changelogContent
-                                                .replace(
-                                                    /^##\s+(.+)$/gm,
-                                                    '<h3 class="text-lg font-bold mb-3 mt-4">$1</h3>'
-                                                )
-                                                .replace(
-                                                    /^###\s+(.+)$/gm,
-                                                    '<h4 class="text-base font-semibold mb-2 mt-3">$1</h4>'
-                                                )
-                                                .replace(
-                                                    /^\*\s+(.+)$/gm,
-                                                    '<li class="ml-4">$1</li>'
-                                                )
-                                                .replace(
-                                                    /\n\n/g,
-                                                    '</p><p class="mb-3">'
-                                                )
-                                                .replace(/\n/g, "<br />"),
+                                    <ReactMarkdown
+                                        components={{
+                                            h2: ({ children }) => (
+                                                <h3 className="text-lg font-bold mb-3 mt-4">
+                                                    {children}
+                                                </h3>
+                                            ),
+                                            h3: ({ children }) => (
+                                                <h4 className="text-base font-semibold mb-2 mt-3">
+                                                    {children}
+                                                </h4>
+                                            ),
+                                            ul: ({ children }) => (
+                                                <ul className="list-disc list-inside space-y-1 ml-4">
+                                                    {children}
+                                                </ul>
+                                            ),
+                                            li: ({ children }) => (
+                                                <li className="text-muted-foreground">
+                                                    {children}
+                                                </li>
+                                            ),
+                                            a: ({ href, children }) => (
+                                                <a
+                                                    href={href}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-primary hover:underline"
+                                                >
+                                                    {children}
+                                                </a>
+                                            ),
+                                            p: ({ children }) => (
+                                                <p className="mb-3">
+                                                    {children}
+                                                </p>
+                                            ),
                                         }}
-                                    />
+                                    >
+                                        {changelogContent}
+                                    </ReactMarkdown>
                                 </div>
                             ) : (
                                 <div className="text-center text-sm text-muted-foreground">

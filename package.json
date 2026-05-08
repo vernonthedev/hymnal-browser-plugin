@@ -108,6 +108,7 @@
         "@hugeicons/react": "^1.1.6",
         "react": "^19.2.5",
         "react-dom": "^19.2.5",
+        "react-markdown": "^10.1.0",
         "ws": "^8.18.0"
     },
     "devDependencies": {
