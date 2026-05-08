@@ -90,7 +90,7 @@ export default function App() {
     const [modal, setModal] = useState<{
         eyebrow: string;
         title: string;
-        body: string;
+        body: "help" | "about" | string;
     } | null>(null);
     const [compactMode, setCompactMode] = useState(false);
     const [isMaximized, setIsMaximized] = useState(false);
@@ -563,7 +563,7 @@ export default function App() {
                                 setModal({
                                     eyebrow: "Help",
                                     title: "Using the console",
-                                    body: buildHelpModal,
+                                    body: "help",
                                 })
                             }
                         />
@@ -580,7 +580,7 @@ export default function App() {
                                 setModal({
                                     eyebrow: "About",
                                     title: "Hymnal BroadCast Console",
-                                    body: buildAboutModal(),
+                                    body: "about",
                                 })
                             }
                         />
@@ -1450,10 +1450,216 @@ export default function App() {
                                 />
                             </button>
                         </div>
-                        <div
-                            className="flex-1 overflow-auto pr-1"
-                            dangerouslySetInnerHTML={{ __html: modal.body }}
-                        />
+                        <div className="flex-1 overflow-auto pr-1">
+                            {modal.body === "help" ? (
+                                <div className="space-y-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        Use hymn number search to load lyrics
+                                        quickly, then control progression with
+                                        keyboard shortcuts or the transport
+                                        buttons.
+                                    </p>
+                                    <div className="space-y-3">
+                                        <div className="p-4 rounded-lg border border-border bg-secondary/30">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-sm font-bold">
+                                                    Shortcuts
+                                                </h3>
+                                                <span className="text-xs text-muted-foreground">
+                                                    Keyboard
+                                                </span>
+                                            </div>
+                                            <div className="space-y-1 text-sm text-muted-foreground">
+                                                <p>
+                                                    <kbd className="px-2 py-1 rounded bg-background border border-border text-xs">
+                                                        Enter
+                                                    </kbd>{" "}
+                                                    Load selected hymn
+                                                </p>
+                                                <p>
+                                                    <kbd className="px-2 py-1 rounded bg-background border border-border text-xs">
+                                                        Space
+                                                    </kbd>{" "}
+                                                    Next line
+                                                </p>
+                                                <p>
+                                                    <kbd className="px-2 py-1 rounded bg-background border border-border text-xs">
+                                                        Left
+                                                    </kbd>{" "}
+                                                    Previous line
+                                                </p>
+                                                <p>
+                                                    <kbd className="px-2 py-1 rounded bg-background border border-border text-xs">
+                                                        R
+                                                    </kbd>{" "}
+                                                    Reset
+                                                </p>
+                                                <p>
+                                                    <kbd className="px-2 py-1 rounded bg-background border border-border text-xs">
+                                                        B
+                                                    </kbd>{" "}
+                                                    Blank
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 rounded-lg border border-border bg-secondary/30">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-sm font-bold">
+                                                    Overlays
+                                                </h3>
+                                                <span className="text-xs text-muted-foreground">
+                                                    OBS / vMix
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground">
+                                                Copy overlay URLs from the URLs
+                                                page or the right sidebar and
+                                                use them as browser sources.
+                                            </p>
+                                        </div>
+                                        <div className="p-4 rounded-lg border border-border bg-secondary/30">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-sm font-bold">
+                                                    Theme Controls
+                                                </h3>
+                                                <span className="text-xs text-muted-foreground">
+                                                    Live output
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground">
+                                                Template, font size, alignment,
+                                                animation, and safe margin
+                                                update the live overlay style
+                                                immediately.
+                                            </p>
+                                        </div>
+                                        <div className="p-4 rounded-lg border border-border bg-secondary/30">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-sm font-bold">
+                                                    Support
+                                                </h3>
+                                                <span className="text-xs text-muted-foreground">
+                                                    Links
+                                                </span>
+                                            </div>
+                                            <div className="space-y-2 text-sm text-muted-foreground">
+                                                <p>Developer: vernonthedev</p>
+                                                <a
+                                                    href="https://vernon.skope.au"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-primary hover:underline"
+                                                >
+                                                    https://vernon.skope.au
+                                                </a>
+                                                <a
+                                                    href="https://github.com/vernonthedev/hymnal-browser-plugin"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-primary hover:underline"
+                                                >
+                                                    https://github.com/vernonthedev/hymnal-browser-plugin
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : modal.body === "about" ? (
+                                <div className="space-y-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        Hymnal BroadCast Console is a local
+                                        broadcast console for loading hymn
+                                        lyrics and sending live overlay updates
+                                        to browser-based outputs.
+                                    </p>
+                                    <div className="space-y-3">
+                                        <div className="p-4 rounded-lg border border-border bg-secondary/30">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-sm font-bold">
+                                                    Developer
+                                                </h3>
+                                                <span className="text-xs text-muted-foreground">
+                                                    vernonthedev
+                                                </span>
+                                            </div>
+                                            <div className="space-y-2 text-sm text-muted-foreground">
+                                                <a
+                                                    href="https://vernon.skope.au"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-primary hover:underline"
+                                                >
+                                                    https://vernon.skope.au
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 rounded-lg border border-border bg-secondary/30">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-sm font-bold">
+                                                    Version
+                                                </h3>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {runtime?.version ||
+                                                        "2.0.0"}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground">
+                                                Current application version
+                                            </p>
+                                        </div>
+                                        <div className="p-4 rounded-lg border border-border bg-secondary/30">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-sm font-bold">
+                                                    Shortcuts
+                                                </h3>
+                                                <span className="text-xs text-muted-foreground">
+                                                    Keyboard
+                                                </span>
+                                            </div>
+                                            <div className="space-y-1 text-sm text-muted-foreground">
+                                                <p>
+                                                    <kbd className="px-2 py-1 rounded bg-background border border-border text-xs">
+                                                        Enter
+                                                    </kbd>{" "}
+                                                    Load
+                                                </p>
+                                                <p>
+                                                    <kbd className="px-2 py-1 rounded bg-background border border-border text-xs">
+                                                        Space
+                                                    </kbd>{" "}
+                                                    Next
+                                                </p>
+                                                <p>
+                                                    <kbd className="px-2 py-1 rounded bg-background border border-border text-xs">
+                                                        Left
+                                                    </kbd>{" "}
+                                                    Previous
+                                                </p>
+                                                <p>
+                                                    <kbd className="px-2 py-1 rounded bg-background border border-border text-xs">
+                                                        R
+                                                    </kbd>{" "}
+                                                    Reset
+                                                </p>
+                                                <p>
+                                                    <kbd className="px-2 py-1 rounded bg-background border border-border text-xs">
+                                                        B
+                                                    </kbd>{" "}
+                                                    Blank
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div
+                                    className="prose prose-sm dark:prose-invert max-w-none"
+                                    dangerouslySetInnerHTML={{
+                                        __html: modal.body,
+                                    }}
+                                />
+                            )}
+                        </div>
                     </section>
                 </div>
             )}
@@ -1528,109 +1734,4 @@ function Label({ children }: { children: React.ReactNode }) {
             {children}
         </span>
     );
-}
-
-const aboutBody = `<div class="space-y-3">
-  <p class="text-muted-foreground text-sm">Hymnal BroadCast Console is a local broadcast console for loading hymn lyrics and sending live overlay updates to browser-based outputs.</p>
-  <div class="p-3 rounded border border-border bg-card/50"><p class="text-sm font-bold mb-1">Shortcuts</p><p class="text-sm text-muted-foreground">Enter = Load | Space/Right = Next | Left = Previous | R = Reset | B = Blank</p></div>
-</div>`;
-
-const buildHelpModal = `<div class="modal-copy">
-      <p>Use hymn number search to load lyrics quickly, then control progression with keyboard shortcuts or the transport buttons.</p>
-      <div class="modal-list">
-        <article class="modal-card">
-          <div class="modal-card-header"><strong>Shortcuts</strong><span>Keyboard</span></div>
-          <p><kbd>Enter</kbd> Load selected hymn, <kbd>Space</kbd> Next line, <kbd>Left</kbd> Previous line, <kbd>R</kbd> Reset, <kbd>B</kbd> Blank.</p>
-        </article>
-        <article class="modal-card">
-          <div class="modal-card-header"><strong>Overlays</strong><span>OBS / vMix</span></div>
-          <p>Copy overlay URLs from the URLs page or the right sidebar and use them as browser sources.</p>
-        </article>
-        <article class="modal-card">
-          <div class="modal-card-header"><strong>Theme Controls</strong><span>Live output</span></div>
-          <p>Template, font size, alignment, animation, and safe margin update the live overlay style immediately.</p>
-        </article>
-        <article class="modal-card">
-          <div class="modal-card-header"><strong>Support</strong><span>Links</span></div>
-          <p>Developer: vernonthedev</p>
-          <code>https://vernon.skope.au</code>
-          <code>https://github.com/vernonthedev/hymnal-browser-plugin</code>
-        </article>
-      </div>
-    </div>`;
-
-function buildAboutModal(): string {
-    const releaseVersion = state.releaseInfo?.version || "Unavailable";
-    const releaseDate = state.releaseInfo?.releasedOn || "Unavailable";
-    const releaseSummary = state.releaseInfo?.summary || [];
-
-    return `
-    <div class="modal-copy">
-      <p>Hymnal BroadCast Console is a local broadcast console for loading hymn lyrics and sending live overlay updates to browser-based outputs.</p>
-      <div class="modal-list">
-        <article class="modal-card">
-          <div class="modal-card-header"><strong>Developer</strong><span>vernonthedev</span></div>
-          <p>Website</p>
-          <code>https://vernon.skope.au</code>
-        </article>
-        <article class="modal-card">
-          <div class="modal-card-header"><strong>Release Version</strong><span>${escapeHtml(releaseVersion)}</span></div>
-          <p>Latest version resolved from CHANGELOG.md.</p>
-        </article>
-        <article class="modal-card">
-          <div class="modal-card-header"><strong>Released On</strong><span>${escapeHtml(releaseDate)}</span></div>
-          <p>This value follows your semantic-release changelog updates from CI.</p>
-        </article>
-        <article class="modal-card">
-          <div class="modal-card-header"><strong>Runtime</strong><span>${state.runtime ? "Connected" : "Waiting"}</span></div>
-          <p>${state.runtime ? `HTTP ${escapeHtml(String(state.runtime.httpPort))}, WS ${escapeHtml(String(state.runtime.wsPort))}` : "Backend runtime details are not available yet."}</p>
-        </article>
-        <article class="modal-card">
-          <div class="modal-card-header"><strong>Source Code</strong><span>GitHub</span></div>
-          <code>https://github.com/vernonthedev/hymnal-browser-plugin</code>
-        </article>
-        <article class="modal-card">
-          <div class="modal-card-header"><strong>Latest Changes</strong><span>${releaseSummary.length}</span></div>
-          ${
-              releaseSummary.length
-                  ? `<ul class="modal-bullets">${releaseSummary.map((item: string) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
-                  : "<p>No changelog summary available.</p>"
-          }
-        </article>
-      </div>
-    </div>
-  `;
-}
-
-function escapeHtml(str: string): string {
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
-}
-
-const state = {
-    runtime: null as RuntimeInfo | null,
-    status: null as Status | null,
-    socket: null as WebSocket | null,
-    hymnIndex: [] as Hymn[],
-    presets: {} as Record<string, any>,
-    appVersion: "0.0.0",
-    releaseInfo: null as any,
-    reconnectTimer: null as number | null,
-    styleUpdateTimer: null as number | null,
-    logLines: [] as string[],
-    pickerDismissed: false,
-    isConnecting: false,
-    shouldReconnect: true,
-};
-
-interface RuntimeInfo {
-    version: string;
-    httpPort: number;
-    wsPort: number;
-    dataDir: string;
-    hymnsDir: string;
-    token: string;
-    overlayProfiles: any[];
-    overlayUrls: any[];
 }
