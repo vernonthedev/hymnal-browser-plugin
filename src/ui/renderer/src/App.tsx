@@ -20,6 +20,9 @@ import {
     WifiDisconnected01Icon,
     SquareIcon,
     Copy01Icon,
+    Sun01Icon,
+    Moon01Icon,
+    File01Icon,
 } from "@hugeicons/core-free-icons";
 
 /* ─── Types ─── */
@@ -89,6 +92,9 @@ export default function App() {
     } | null>(null);
     const [compactMode, setCompactMode] = useState(false);
     const [isMaximized, setIsMaximized] = useState(false);
+    const [currentView, setCurrentView] = useState<"main" | "settings">("main");
+    const [theme, setTheme] = useState<"dark" | "light">("dark");
+    const [showChangelog, setShowChangelog] = useState(false);
 
     const searchInputRef = useRef<HTMLInputElement>(null);
     const runtimeRef = useRef<Runtime | null>(null);
@@ -148,6 +154,18 @@ export default function App() {
             window.removeEventListener("mouseup", onMouseUp);
         };
     }, []);
+
+    /* ─── Theme Management ─── */
+    useEffect(() => {
+        const root = document.documentElement;
+        if (theme === "dark") {
+            root.classList.add("dark");
+            root.classList.remove("light");
+        } else {
+            root.classList.add("light");
+            root.classList.remove("dark");
+        }
+    }, [theme]);
 
     /* ─── Init ─── */
     useEffect(() => {
@@ -380,6 +398,18 @@ export default function App() {
                         onClick={() => {}}
                         active={false}
                     />
+                    <SidebarButton
+                        icon={
+                            <HugeiconsIcon
+                                icon={Setting07Icon}
+                                size={18}
+                                strokeWidth={1.5}
+                            />
+                        }
+                        label="Settings"
+                        onClick={() => setCurrentView("settings")}
+                        active={currentView === "settings"}
+                    />
 
                     {/* Transport Section */}
                     <div className="pt-4 pb-1 px-5">
@@ -601,395 +631,496 @@ export default function App() {
                 </header>
 
                 {/* Workspace */}
-                <div
-                    className={`flex-1 flex overflow-hidden ${compactMode ? "p-2 gap-2" : "p-4 gap-4"}`}
-                >
-                    {/* Left: Controls */}
-                    <section
-                        className={`${compactMode ? "w-56" : "w-72"} flex flex-col gap-3 overflow-y-auto pr-1 shrink-0`}
+                {currentView === "main" ? (
+                    <div
+                        className={`flex-1 flex overflow-hidden ${compactMode ? "p-2 gap-2" : "p-4 gap-4"}`}
                     >
-                        <div className="space-y-0.5">
-                            <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
-                                Hymn Controls
-                            </p>
-                            <h2 className="text-base font-bold">Transport</h2>
-                        </div>
-                        <div className="grid grid-cols-2 gap-1.5">
-                            {[
-                                {
-                                    k: "Enter",
-                                    l: "Load",
-                                    icon: (
-                                        <HugeiconsIcon
-                                            icon={PlayIcon}
-                                            size={12}
-                                            strokeWidth={2}
-                                        />
-                                    ),
-                                },
-                                {
-                                    k: "Space",
-                                    l: "Next",
-                                    icon: (
-                                        <HugeiconsIcon
-                                            icon={Forward01Icon}
-                                            size={12}
-                                            strokeWidth={2}
-                                        />
-                                    ),
-                                },
-                                {
-                                    k: "Left",
-                                    l: "Prev",
-                                    icon: (
-                                        <HugeiconsIcon
-                                            icon={Backward01Icon}
-                                            size={12}
-                                            strokeWidth={2}
-                                        />
-                                    ),
-                                },
-                                {
-                                    k: "R",
-                                    l: "Reset",
-                                    icon: (
-                                        <HugeiconsIcon
-                                            icon={RefreshIcon}
-                                            size={12}
-                                            strokeWidth={2}
-                                        />
-                                    ),
-                                },
-                            ].map((s) => (
-                                <div
-                                    key={s.k}
-                                    className="flex items-center justify-between p-1.5 rounded-lg border border-border bg-card"
-                                >
-                                    <kbd className="min-w-[40px] px-2 py-1 rounded-full bg-secondary border border-border text-[0.7rem] font-bold text-center flex items-center justify-center gap-1">
-                                        {s.icon}
-                                        {s.k}
-                                    </kbd>
-                                    <span className="text-xs text-muted-foreground font-medium">
-                                        {s.l}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="p-3 rounded-lg border border-border bg-card space-y-1">
-                            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                Selection
-                            </p>
-                            <p className="text-sm font-semibold">
-                                {selectedHymn
-                                    ? `Hymn ${selectedHymn.number}`
-                                    : "No hymn selected"}
-                            </p>
-                            <p className="text-xs text-muted-foreground leading-snug">
-                                {selectedHymn
-                                    ? getHymnTitle(selectedHymn)
-                                    : "Use Search to find a hymn."}
-                            </p>
-                        </div>
-                        <div className="mt-auto grid grid-cols-2 gap-1.5 pt-2 border-t border-border">
-                            {[
-                                {
-                                    c: "prev",
-                                    label: "Previous",
-                                    icon: (
-                                        <HugeiconsIcon
-                                            icon={ArrowLeft01Icon}
-                                            size={14}
-                                            strokeWidth={2}
-                                        />
-                                    ),
-                                },
-                                {
-                                    c: "next",
-                                    label: "Next",
-                                    icon: (
-                                        <HugeiconsIcon
-                                            icon={ArrowRight01Icon}
-                                            size={14}
-                                            strokeWidth={2}
-                                        />
-                                    ),
-                                },
-                                {
-                                    c: "show",
-                                    label: "Show",
-                                    icon: (
-                                        <HugeiconsIcon
-                                            icon={PlayIcon}
-                                            size={14}
-                                            strokeWidth={2}
-                                        />
-                                    ),
-                                },
-                                {
-                                    c: "blank",
-                                    label: "Blank",
-                                    icon: (
-                                        <HugeiconsIcon
-                                            icon={SquareArrowDownLeftIcon}
-                                            size={14}
-                                            strokeWidth={2}
-                                        />
-                                    ),
-                                },
-                            ].map(({ c, label, icon }) => (
-                                <button
-                                    key={c}
-                                    onClick={() => sendCommand({ cmd: c })}
-                                    className={`h-9 rounded-lg border text-xs font-semibold transition flex items-center justify-center gap-1.5 ${c === "next" ? "bg-primary text-primary-foreground border-primary/15 hover:bg-primary/90" : "bg-secondary border-border hover:bg-secondary/80"}`}
-                                >
-                                    {icon}
-                                    {label}
-                                </button>
-                            ))}
-                        </div>
-                    </section>
-
-                    {/* Center: Preview */}
-                    <section className="flex-1 min-w-0 border border-border rounded-lg bg-card flex flex-col gap-3 overflow-hidden">
-                        <div
-                            className={`${compactMode ? "px-2 pt-2 pb-1" : "px-4 pt-4 pb-2"} flex items-center justify-between shrink-0`}
+                        {/* Left: Controls */}
+                        <section
+                            className={`${compactMode ? "w-56" : "w-72"} flex flex-col gap-3 overflow-y-auto pr-1 shrink-0`}
                         >
-                            <div>
+                            <div className="space-y-0.5">
                                 <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
-                                    Live Preview
+                                    Hymn Controls
+                                </p>
+                                <h2 className="text-base font-bold">
+                                    Transport
+                                </h2>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1.5">
+                                {[
+                                    {
+                                        k: "Enter",
+                                        l: "Load",
+                                        icon: (
+                                            <HugeiconsIcon
+                                                icon={PlayIcon}
+                                                size={12}
+                                                strokeWidth={2}
+                                            />
+                                        ),
+                                    },
+                                    {
+                                        k: "Space",
+                                        l: "Next",
+                                        icon: (
+                                            <HugeiconsIcon
+                                                icon={Forward01Icon}
+                                                size={12}
+                                                strokeWidth={2}
+                                            />
+                                        ),
+                                    },
+                                    {
+                                        k: "Left",
+                                        l: "Prev",
+                                        icon: (
+                                            <HugeiconsIcon
+                                                icon={Backward01Icon}
+                                                size={12}
+                                                strokeWidth={2}
+                                            />
+                                        ),
+                                    },
+                                    {
+                                        k: "R",
+                                        l: "Reset",
+                                        icon: (
+                                            <HugeiconsIcon
+                                                icon={RefreshIcon}
+                                                size={12}
+                                                strokeWidth={2}
+                                            />
+                                        ),
+                                    },
+                                ].map((s) => (
+                                    <div
+                                        key={s.k}
+                                        className="flex items-center justify-between p-1.5 rounded-lg border border-border bg-card"
+                                    >
+                                        <kbd className="min-w-[40px] px-2 py-1 rounded-full bg-secondary border border-border text-[0.7rem] font-bold text-center flex items-center justify-center gap-1">
+                                            {s.icon}
+                                            {s.k}
+                                        </kbd>
+                                        <span className="text-xs text-muted-foreground font-medium">
+                                            {s.l}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="p-3 rounded-lg border border-border bg-card space-y-1">
+                                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                    Selection
+                                </p>
+                                <p className="text-sm font-semibold">
+                                    {selectedHymn
+                                        ? `Hymn ${selectedHymn.number}`
+                                        : "No hymn selected"}
+                                </p>
+                                <p className="text-xs text-muted-foreground leading-snug">
+                                    {selectedHymn
+                                        ? getHymnTitle(selectedHymn)
+                                        : "Use Search to find a hymn."}
+                                </p>
+                            </div>
+                            <div className="mt-auto grid grid-cols-2 gap-1.5 pt-2 border-t border-border">
+                                {[
+                                    {
+                                        c: "prev",
+                                        label: "Previous",
+                                        icon: (
+                                            <HugeiconsIcon
+                                                icon={ArrowLeft01Icon}
+                                                size={14}
+                                                strokeWidth={2}
+                                            />
+                                        ),
+                                    },
+                                    {
+                                        c: "next",
+                                        label: "Next",
+                                        icon: (
+                                            <HugeiconsIcon
+                                                icon={ArrowRight01Icon}
+                                                size={14}
+                                                strokeWidth={2}
+                                            />
+                                        ),
+                                    },
+                                    {
+                                        c: "show",
+                                        label: "Show",
+                                        icon: (
+                                            <HugeiconsIcon
+                                                icon={PlayIcon}
+                                                size={14}
+                                                strokeWidth={2}
+                                            />
+                                        ),
+                                    },
+                                    {
+                                        c: "blank",
+                                        label: "Blank",
+                                        icon: (
+                                            <HugeiconsIcon
+                                                icon={SquareArrowDownLeftIcon}
+                                                size={14}
+                                                strokeWidth={2}
+                                            />
+                                        ),
+                                    },
+                                ].map(({ c, label, icon }) => (
+                                    <button
+                                        key={c}
+                                        onClick={() => sendCommand({ cmd: c })}
+                                        className={`h-9 rounded-lg border text-xs font-semibold transition flex items-center justify-center gap-1.5 ${c === "next" ? "bg-primary text-primary-foreground border-primary/15 hover:bg-primary/90" : "bg-secondary border-border hover:bg-secondary/80"}`}
+                                    >
+                                        {icon}
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* Center: Preview */}
+                        <section className="flex-1 min-w-0 border border-border rounded-lg bg-card flex flex-col gap-3 overflow-hidden">
+                            <div
+                                className={`${compactMode ? "px-2 pt-2 pb-1" : "px-4 pt-4 pb-2"} flex items-center justify-between shrink-0`}
+                            >
+                                <div>
+                                    <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
+                                        Live Preview
+                                    </p>
+                                    <h2
+                                        className={`${compactMode ? "text-sm" : "text-base"} font-bold`}
+                                    >
+                                        Current Lyric
+                                    </h2>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500" />{" "}
+                                    Live
+                                </div>
+                            </div>
+                            <div
+                                className={`flex-1 border-t border-border flex flex-col ${compactMode ? "p-2" : "p-4"} gap-3 overflow-hidden`}
+                            >
+                                <div>
+                                    <p className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground">
+                                        Previous
+                                    </p>
+                                    <p className="text-sm text-muted-foreground line-clamp-2">
+                                        {status?.previous_text || "—"}
+                                    </p>
+                                </div>
+                                <div className="flex-1 flex flex-col justify-center gap-2 text-center min-h-0">
+                                    <p className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground">
+                                        On Screen
+                                    </p>
+                                    <p className="text-xl font-extrabold tracking-tight line-clamp-6 max-w-[600px] mx-auto leading-tight">
+                                        {status?.text || "Waiting for backend"}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground">
+                                        Next
+                                    </p>
+                                    <p className="text-sm text-muted-foreground line-clamp-2">
+                                        {status?.next_text ||
+                                            "No upcoming hymns"}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 gap-3 px-4 pt-2 pb-4 border-t border-border shrink-0">
+                                {[
+                                    {
+                                        l: "Hymn",
+                                        v: status?.current_hymn || "—",
+                                    },
+                                    {
+                                        l: "Line",
+                                        v: status?.total_lines
+                                            ? `${status.line_index + 1}/${status.total_lines}`
+                                            : "0/0",
+                                    },
+                                    {
+                                        l: "Overlays",
+                                        v: String(
+                                            status?.connected_clients || 0
+                                        ),
+                                    },
+                                    {
+                                        l: "Status",
+                                        v: status?.visible ? "Shown" : "Blank",
+                                    },
+                                ].map((m) => (
+                                    <div
+                                        key={m.l}
+                                        className="flex flex-col gap-0.5"
+                                    >
+                                        <span className="text-[0.65rem] text-muted-foreground uppercase tracking-wider">
+                                            {m.l}
+                                        </span>
+                                        <strong className="text-sm font-bold">
+                                            {m.v}
+                                        </strong>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* Right: Styling */}
+                        <aside
+                            className={`${compactMode ? "w-48" : "w-64"} shrink-0 overflow-y-auto pr-1 flex flex-col gap-3`}
+                        >
+                            <div className="space-y-0.5">
+                                <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
+                                    Theme
                                 </p>
                                 <h2
                                     className={`${compactMode ? "text-sm" : "text-base"} font-bold`}
                                 >
-                                    Current Lyric
+                                    Live Styling
                                 </h2>
                             </div>
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500" />{" "}
-                                Live
-                            </div>
-                        </div>
-                        <div
-                            className={`flex-1 border-t border-border flex flex-col ${compactMode ? "p-2" : "p-4"} gap-3 overflow-hidden`}
-                        >
-                            <div>
-                                <p className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground">
-                                    Previous
-                                </p>
-                                <p className="text-sm text-muted-foreground line-clamp-2">
-                                    {status?.previous_text || "—"}
-                                </p>
-                            </div>
-                            <div className="flex-1 flex flex-col justify-center gap-2 text-center min-h-0">
-                                <p className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground">
-                                    On Screen
-                                </p>
-                                <p className="text-xl font-extrabold tracking-tight line-clamp-6 max-w-[600px] mx-auto leading-tight">
-                                    {status?.text || "Waiting for backend"}
-                                </p>
-                            </div>
-                            <div>
-                                <p className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground">
-                                    Next
-                                </p>
-                                <p className="text-sm text-muted-foreground line-clamp-2">
-                                    {status?.next_text || "No upcoming hymns"}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-4 gap-3 px-4 pt-2 pb-4 border-t border-border shrink-0">
-                            {[
-                                { l: "Hymn", v: status?.current_hymn || "—" },
-                                {
-                                    l: "Line",
-                                    v: status?.total_lines
-                                        ? `${status.line_index + 1}/${status.total_lines}`
-                                        : "0/0",
-                                },
-                                {
-                                    l: "Overlays",
-                                    v: String(status?.connected_clients || 0),
-                                },
-                                {
-                                    l: "Status",
-                                    v: status?.visible ? "Shown" : "Blank",
-                                },
-                            ].map((m) => (
-                                <div
-                                    key={m.l}
-                                    className="flex flex-col gap-0.5"
+                            <section
+                                className={`border border-border rounded-lg bg-card ${compactMode ? "p-2" : "p-3"} space-y-2.5`}
+                            >
+                                <Label>Template</Label>
+                                <select
+                                    ref={speakerTemplateRef}
+                                    onChange={queueStyleUpdate}
+                                    className="h-9 w-full px-2 rounded-lg border border-border bg-background text-sm outline-none"
                                 >
-                                    <span className="text-[0.65rem] text-muted-foreground uppercase tracking-wider">
-                                        {m.l}
-                                    </span>
-                                    <strong className="text-sm font-bold">
-                                        {m.v}
-                                    </strong>
+                                    <option value="">Custom</option>
+                                    <option>Sabbath School</option>
+                                    <option>Divine Service</option>
+                                    <option>Opening Hymn</option>
+                                    <option>Closing Hymn</option>
+                                    <option>Scripture Reading</option>
+                                    <option>Special Music</option>
+                                </select>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <Label>Font size</Label>
+                                        <select
+                                            ref={fontSizeRef}
+                                            onChange={queueStyleUpdate}
+                                            defaultValue="md"
+                                            className="h-9 w-full px-2 rounded-lg border border-border bg-background text-sm outline-none"
+                                        >
+                                            <option>sm</option>
+                                            <option>md</option>
+                                            <option>lg</option>
+                                            <option>xl</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <Label>Alignment</Label>
+                                        <select
+                                            ref={alignmentRef}
+                                            onChange={queueStyleUpdate}
+                                            defaultValue="center"
+                                            className="h-9 w-full px-2 rounded-lg border border-border bg-background text-sm outline-none"
+                                        >
+                                            <option>left</option>
+                                            <option>center</option>
+                                            <option>right</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <Label>Animation</Label>
+                                        <select
+                                            ref={animationRef}
+                                            onChange={queueStyleUpdate}
+                                            defaultValue="pop"
+                                            className="h-9 w-full px-2 rounded-lg border border-border bg-background text-sm outline-none"
+                                        >
+                                            <option>slide</option>
+                                            <option>fade</option>
+                                            <option>pop</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <Label>Safe Margin</Label>
+                                        <input
+                                            ref={safeMarginRef}
+                                            type="range"
+                                            min="40"
+                                            max="160"
+                                            defaultValue="80"
+                                            onChange={queueStyleUpdate}
+                                            className="w-full accent-primary mt-2"
+                                        />
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    </section>
-
-                    {/* Right: Styling */}
-                    <aside
-                        className={`${compactMode ? "w-48" : "w-64"} shrink-0 overflow-y-auto pr-1 flex flex-col gap-3`}
-                    >
-                        <div className="space-y-0.5">
-                            <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
-                                Theme
-                            </p>
-                            <h2
-                                className={`${compactMode ? "text-sm" : "text-base"} font-bold`}
-                            >
-                                Live Styling
-                            </h2>
-                        </div>
-                        <section
-                            className={`border border-border rounded-lg bg-card ${compactMode ? "p-2" : "p-3"} space-y-2.5`}
-                        >
-                            <Label>Template</Label>
-                            <select
-                                ref={speakerTemplateRef}
-                                onChange={queueStyleUpdate}
-                                className="h-9 w-full px-2 rounded-lg border border-border bg-background text-sm outline-none"
-                            >
-                                <option value="">Custom</option>
-                                <option>Sabbath School</option>
-                                <option>Divine Service</option>
-                                <option>Opening Hymn</option>
-                                <option>Closing Hymn</option>
-                                <option>Scripture Reading</option>
-                                <option>Special Music</option>
-                            </select>
-                            <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                    <Label>Font size</Label>
-                                    <select
-                                        ref={fontSizeRef}
-                                        onChange={queueStyleUpdate}
-                                        defaultValue="md"
-                                        className="h-9 w-full px-2 rounded-lg border border-border bg-background text-sm outline-none"
-                                    >
-                                        <option>sm</option>
-                                        <option>md</option>
-                                        <option>lg</option>
-                                        <option>xl</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <Label>Alignment</Label>
-                                    <select
-                                        ref={alignmentRef}
-                                        onChange={queueStyleUpdate}
-                                        defaultValue="center"
-                                        className="h-9 w-full px-2 rounded-lg border border-border bg-background text-sm outline-none"
-                                    >
-                                        <option>left</option>
-                                        <option>center</option>
-                                        <option>right</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <Label>Animation</Label>
-                                    <select
-                                        ref={animationRef}
-                                        onChange={queueStyleUpdate}
-                                        defaultValue="pop"
-                                        className="h-9 w-full px-2 rounded-lg border border-border bg-background text-sm outline-none"
-                                    >
-                                        <option>slide</option>
-                                        <option>fade</option>
-                                        <option>pop</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <Label>Safe Margin</Label>
+                                <div className="pt-2 border-t border-border">
+                                    <Label>Speaker Label</Label>
                                     <input
-                                        ref={safeMarginRef}
-                                        type="range"
-                                        min="40"
-                                        max="160"
-                                        defaultValue="80"
+                                        ref={speakerRef}
                                         onChange={queueStyleUpdate}
-                                        className="w-full accent-primary mt-2"
+                                        placeholder="Optional text..."
+                                        className="h-9 w-full px-2.5 rounded-lg border border-border bg-background text-sm outline-none placeholder:text-muted-foreground/60"
                                     />
                                 </div>
-                            </div>
-                            <div className="pt-2 border-t border-border">
-                                <Label>Speaker Label</Label>
+                            </section>
+                            <section
+                                className={`border border-border rounded-lg bg-card ${compactMode ? "p-2" : "p-3"} space-y-2.5`}
+                            >
+                                <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
+                                    Presets
+                                </p>
+                                <div className="flex gap-2">
+                                    <select
+                                        ref={presetSelectRef}
+                                        defaultValue=""
+                                        className="h-9 flex-1 px-2 rounded-lg border border-border bg-background text-sm outline-none"
+                                    >
+                                        {Object.keys(presets).map((n) => (
+                                            <option key={n} value={n}>
+                                                {n}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        onClick={() =>
+                                            sendCommand({
+                                                cmd: "apply_preset",
+                                                name:
+                                                    presetSelectRef.current
+                                                        ?.value || "",
+                                            })
+                                        }
+                                        className="h-9 px-3 rounded-lg bg-secondary border border-border hover:bg-secondary/80 text-xs font-semibold"
+                                    >
+                                        Apply
+                                    </button>
+                                </div>
                                 <input
-                                    ref={speakerRef}
-                                    onChange={queueStyleUpdate}
-                                    placeholder="Optional text..."
+                                    ref={presetNameRef}
+                                    placeholder="Preset name..."
                                     className="h-9 w-full px-2.5 rounded-lg border border-border bg-background text-sm outline-none placeholder:text-muted-foreground/60"
                                 />
-                            </div>
-                        </section>
-                        <section
-                            className={`border border-border rounded-lg bg-card ${compactMode ? "p-2" : "p-3"} space-y-2.5`}
-                        >
-                            <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
-                                Presets
-                            </p>
-                            <div className="flex gap-2">
-                                <select
-                                    ref={presetSelectRef}
-                                    defaultValue=""
-                                    className="h-9 flex-1 px-2 rounded-lg border border-border bg-background text-sm outline-none"
-                                >
-                                    {Object.keys(presets).map((n) => (
-                                        <option key={n} value={n}>
-                                            {n}
-                                        </option>
-                                    ))}
-                                </select>
                                 <button
-                                    onClick={() =>
+                                    onClick={() => {
+                                        const n =
+                                            presetNameRef.current?.value.trim();
+                                        if (!n) {
+                                            showToast(
+                                                "Preset name is required.",
+                                                "error"
+                                            );
+                                            return;
+                                        }
                                         sendCommand({
-                                            cmd: "apply_preset",
-                                            name:
-                                                presetSelectRef.current
-                                                    ?.value || "",
-                                        })
-                                    }
-                                    className="h-9 px-3 rounded-lg bg-secondary border border-border hover:bg-secondary/80 text-xs font-semibold"
+                                            cmd: "update_style",
+                                            style: buildStylePayload(),
+                                        });
+                                        sendCommand({
+                                            cmd: "save_preset",
+                                            name: n,
+                                        });
+                                        presetNameRef.current!.value = "";
+                                    }}
+                                    className="h-9 w-full rounded-lg bg-primary text-primary-foreground text-xs font-semibold border border-primary/15 hover:bg-primary/90"
                                 >
-                                    Apply
+                                    Save Preset
                                 </button>
+                            </section>
+                        </aside>
+                    </div>
+                ) : (
+                    <div
+                        className={`flex-1 flex overflow-hidden ${compactMode ? "p-2 gap-2" : "p-4 gap-4"}`}
+                    >
+                        <section className="flex-1 flex flex-col gap-4 overflow-y-auto">
+                            <div className="space-y-0.5">
+                                <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
+                                    Settings
+                                </p>
+                                <h2 className="text-base font-bold">
+                                    Preferences
+                                </h2>
                             </div>
-                            <input
-                                ref={presetNameRef}
-                                placeholder="Preset name..."
-                                className="h-9 w-full px-2.5 rounded-lg border border-border bg-background text-sm outline-none placeholder:text-muted-foreground/60"
-                            />
-                            <button
-                                onClick={() => {
-                                    const n =
-                                        presetNameRef.current?.value.trim();
-                                    if (!n) {
-                                        showToast(
-                                            "Preset name is required.",
-                                            "error"
-                                        );
-                                        return;
-                                    }
-                                    sendCommand({
-                                        cmd: "update_style",
-                                        style: buildStylePayload(),
-                                    });
-                                    sendCommand({
-                                        cmd: "save_preset",
-                                        name: n,
-                                    });
-                                    presetNameRef.current!.value = "";
-                                }}
-                                className="h-9 w-full rounded-lg bg-primary text-primary-foreground text-xs font-semibold border border-primary/15 hover:bg-primary/90"
-                            >
-                                Save Preset
-                            </button>
+
+                            {/* Theme Toggle */}
+                            <div className="p-4 rounded-lg border border-border bg-card space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <HugeiconsIcon
+                                            icon={
+                                                theme === "dark"
+                                                    ? Moon01Icon
+                                                    : Sun01Icon
+                                            }
+                                            size={20}
+                                            strokeWidth={1.5}
+                                            className="text-muted-foreground"
+                                        />
+                                        <div>
+                                            <p className="text-sm font-semibold">
+                                                Theme
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Switch between dark and light
+                                                mode
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() =>
+                                            setTheme(
+                                                theme === "dark"
+                                                    ? "light"
+                                                    : "dark"
+                                            )
+                                        }
+                                        className="h-9 px-4 rounded-lg border border-border bg-secondary hover:bg-secondary/80 transition text-xs font-semibold flex items-center gap-2"
+                                    >
+                                        <HugeiconsIcon
+                                            icon={
+                                                theme === "dark"
+                                                    ? Sun01Icon
+                                                    : Moon01Icon
+                                            }
+                                            size={14}
+                                            strokeWidth={1.5}
+                                        />
+                                        {theme === "dark" ? "Light" : "Dark"}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Changelog */}
+                            <div className="p-4 rounded-lg border border-border bg-card space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <HugeiconsIcon
+                                            icon={File01Icon}
+                                            size={20}
+                                            strokeWidth={1.5}
+                                            className="text-muted-foreground"
+                                        />
+                                        <div>
+                                            <p className="text-sm font-semibold">
+                                                Changelog
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                View recent changes and updates
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowChangelog(true)}
+                                        className="h-9 px-4 rounded-lg border border-border bg-secondary hover:bg-secondary/80 transition text-xs font-semibold"
+                                    >
+                                        View
+                                    </button>
+                                </div>
+                            </div>
                         </section>
-                    </aside>
-                </div>
+                    </div>
+                )}
             </main>
 
             {/* Toasts */}
@@ -1064,6 +1195,112 @@ export default function App() {
                                     No hymns found for &ldquo;{query}&rdquo;
                                 </p>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Changelog Modal */}
+            {showChangelog && (
+                <div
+                    className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-background/60 backdrop-blur-sm"
+                    onClick={() => setShowChangelog(false)}
+                >
+                    <div
+                        className="w-full max-w-2xl max-h-[80vh] flex flex-col rounded-lg border border-border bg-card"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+                            <div>
+                                <p className="text-sm font-semibold text-muted-foreground">
+                                    About
+                                </p>
+                                <h3 className="text-lg font-bold">Changelog</h3>
+                            </div>
+                            <button
+                                onClick={() => setShowChangelog(false)}
+                                className="h-8 w-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:bg-secondary/50"
+                            >
+                                <HugeiconsIcon
+                                    icon={Cancel01Icon}
+                                    size={16}
+                                    strokeWidth={1.5}
+                                />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-auto p-5">
+                            <div className="prose prose-sm dark:prose-invert max-w-none">
+                                <h3 className="text-lg font-bold mb-3">
+                                    Recent Changes
+                                </h3>
+                                <div className="space-y-4 text-sm">
+                                    <div className="p-3 rounded-lg border border-border bg-secondary/30">
+                                        <p className="font-semibold mb-1">
+                                            Version 2.0.3
+                                        </p>
+                                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                                            <li>
+                                                Resolve Jest coverage and
+                                                TypeScript errors
+                                            </li>
+                                            <li>Resolve PR review issues</li>
+                                            <li>Resolve test import errors</li>
+                                        </ul>
+                                    </div>
+                                    <div className="p-3 rounded-lg border border-border bg-secondary/30">
+                                        <p className="font-semibold mb-1">
+                                            Version 2.0.2
+                                        </p>
+                                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                                            <li>
+                                                Remove build:icons from CI
+                                                (icons already committed)
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div className="p-3 rounded-lg border border-border bg-secondary/30">
+                                        <p className="font-semibold mb-1">
+                                            Version 2.0.1
+                                        </p>
+                                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                                            <li>
+                                                Remove Python steps from CI
+                                                workflow
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div className="p-3 rounded-lg border border-border bg-secondary/30">
+                                        <p className="font-semibold mb-1">
+                                            Version 2.0.0
+                                        </p>
+                                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                                            <li>
+                                                Add missing token to control
+                                                client connection
+                                            </li>
+                                            <li>
+                                                Address PR review security
+                                                vulnerabilities and issues
+                                            </li>
+                                            <li>
+                                                Broadcast actual overlay state
+                                                instead of empty payload
+                                            </li>
+                                            <li>
+                                                Compile main.ts to CJS for
+                                                Electron
+                                            </li>
+                                            <li>
+                                                Resolve ESM __dirname issues in
+                                                build scripts
+                                            </li>
+                                            <li>
+                                                Migrate to TypeScript-only setup
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
