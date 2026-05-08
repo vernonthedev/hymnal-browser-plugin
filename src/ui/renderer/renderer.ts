@@ -359,7 +359,7 @@ function buildAboutModal(): string {
 
     return `
     <div class="modal-copy">
-      <p>SDA Hymnal Desktop is a local broadcast console for loading hymn lyrics and sending live overlay updates to browser-based outputs.</p>
+      <p>Hymnal BroadCast Console is a local broadcast console for loading hymn lyrics and sending live overlay updates to browser-based outputs.</p>
       <div class="modal-list">
         <article class="modal-card">
           <div class="modal-card-header"><strong>Developer</strong><span>vernonthedev</span></div>

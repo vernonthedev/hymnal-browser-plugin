@@ -577,7 +577,7 @@ export default function App() {
                             onClick={() =>
                                 setModal({
                                     eyebrow: "About",
-                                    title: "SDA Hymnal Desktop",
+                                    title: "Hymnal BroadCast Console",
                                     body: buildAboutModal(),
                                 })
                             }
@@ -1529,7 +1529,7 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 const aboutBody = `<div class="space-y-3">
-  <p class="text-muted-foreground text-sm">SDA Hymnal Desktop is a local broadcast console for loading hymn lyrics and sending live overlay updates to browser-based outputs.</p>
+  <p class="text-muted-foreground text-sm">Hymnal BroadCast Console is a local broadcast console for loading hymn lyrics and sending live overlay updates to browser-based outputs.</p>
   <div class="p-3 rounded border border-border bg-card/50"><p class="text-sm font-bold mb-1">Shortcuts</p><p class="text-sm text-muted-foreground">Enter = Load | Space/Right = Next | Left = Previous | R = Reset | B = Blank</p></div>
 </div>`;
 
@@ -1564,7 +1564,7 @@ function buildAboutModal(): string {
 
     return `
     <div class="modal-copy">
-      <p>SDA Hymnal Desktop is a local broadcast console for loading hymn lyrics and sending live overlay updates to browser-based outputs.</p>
+      <p>Hymnal BroadCast Console is a local broadcast console for loading hymn lyrics and sending live overlay updates to browser-based outputs.</p>
       <div class="modal-list">
         <article class="modal-card">
           <div class="modal-card-header"><strong>Developer</strong><span>vernonthedev</span></div>

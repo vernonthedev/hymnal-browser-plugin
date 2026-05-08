@@ -123,7 +123,7 @@ async function getLatestReleaseInfo(): Promise<{
 }
 
 function getAppDataRoot(): string {
-    return path.join(app.getPath("appData"), "SDA Hymnal Desktop");
+    return path.join(app.getPath("appData"), "Hymnal BroadCast Console");
 }
 
 async function ensureDirectory(dirPath: string): Promise<void> {

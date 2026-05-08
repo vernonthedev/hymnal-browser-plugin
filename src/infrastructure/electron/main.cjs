@@ -4725,7 +4725,7 @@ async function getLatestReleaseInfo() {
   }
 }
 function getAppDataRoot() {
-  return path3.join(import_electron.app.getPath("appData"), "SDA Hymnal Desktop");
+  return path3.join(import_electron.app.getPath("appData"), "Hymnal BroadCast Console");
 }
 async function ensureDirectory(dirPath) {
   await fs4.promises.mkdir(dirPath, { recursive: true });
