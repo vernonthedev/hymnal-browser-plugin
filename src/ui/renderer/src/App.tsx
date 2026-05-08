@@ -374,7 +374,7 @@ export default function App() {
                 {/* Sidebar Header */}
                 <div className="px-5 py-4 border-b border-border flex items-center gap-3">
                     <img
-                        src="/assets/logo-transparent.png"
+                        src="./assets/logo-transparent.png"
                         alt="SDA Hymnal Logo"
                         className="w-9 h-9 rounded object-contain"
                     />

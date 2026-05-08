@@ -1,5 +1,6 @@
 import * as esbuild from "esbuild";
 import * as path from "path";
+import * as fs from "fs";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 
@@ -40,6 +41,31 @@ async function build() {
         cwd: root,
         stdio: "inherit",
     });
+
+    // Copy logo assets to dist folder
+    const assetsDir = path.join(root, "assets");
+    const distAssetsDir = path.join(root, "src/ui/renderer/dist/assets");
+
+    // Ensure dist assets directory exists
+    if (!fs.existsSync(distAssetsDir)) {
+        fs.mkdirSync(distAssetsDir, { recursive: true });
+    }
+
+    // Copy logo files
+    const logoFiles = [
+        "logo-transparent.png",
+        "logo-colored.png",
+        "favicon.png",
+    ];
+    for (const file of logoFiles) {
+        const sourcePath = path.join(assetsDir, file);
+        const destPath = path.join(distAssetsDir, file);
+
+        if (fs.existsSync(sourcePath)) {
+            fs.copyFileSync(sourcePath, destPath);
+            console.log(`Copied ${file} to dist/assets/`);
+        }
+    }
 
     // Compile overlay-client.ts to IIFE
     await esbuild.build({
