@@ -95,7 +95,7 @@ export default function App() {
     const [compactMode, setCompactMode] = useState(false);
     const [isMaximized, setIsMaximized] = useState(false);
     const [currentView, setCurrentView] = useState<
-        "main" | "settings" | "presets"
+        "main" | "settings" | "presets" | "browser-sources"
     >("main");
     const [theme, setTheme] = useState<"dark" | "light">("dark");
     const [showChangelog, setShowChangelog] = useState(false);
@@ -422,8 +422,8 @@ export default function App() {
                             />
                         }
                         label="Browser Sources"
-                        onClick={() => {}}
-                        active={false}
+                        onClick={() => setCurrentView("browser-sources")}
+                        active={currentView === "browser-sources"}
                     />
                     <SidebarButton
                         icon={
@@ -1128,6 +1128,88 @@ export default function App() {
                                         <p className="text-sm text-muted-foreground text-center py-4">
                                             No presets saved yet. Create one
                                             from the main controls.
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                ) : currentView === "browser-sources" ? (
+                    <div
+                        className={`flex-1 flex overflow-hidden ${compactMode ? "p-2 gap-2" : "p-4 gap-4"}`}
+                    >
+                        <section className="flex-1 flex flex-col gap-4 overflow-y-auto">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
+                                        Browser Sources
+                                    </p>
+                                    <h2 className="text-base font-bold">
+                                        Overlay URLs
+                                    </h2>
+                                </div>
+                                <button
+                                    onClick={() => setCurrentView("main")}
+                                    className="h-9 px-4 rounded-full border border-border bg-secondary hover:bg-secondary/80 transition text-xs font-semibold flex items-center gap-2"
+                                >
+                                    <HugeiconsIcon
+                                        icon={ArrowLeft01Icon}
+                                        size={14}
+                                        strokeWidth={1.5}
+                                    />
+                                    Back to Home
+                                </button>
+                            </div>
+
+                            <div className="p-4 rounded-lg border border-border bg-card space-y-3">
+                                <p className="text-sm text-muted-foreground">
+                                    Copy these URLs and use them as browser
+                                    sources in OBS, vMix, or other streaming
+                                    software.
+                                </p>
+                                <div className="space-y-3">
+                                    {runtime?.overlayUrls &&
+                                    runtime.overlayUrls.length > 0 ? (
+                                        runtime.overlayUrls.map((overlay) => (
+                                            <div
+                                                key={overlay.name}
+                                                className="p-4 rounded-lg border border-border bg-secondary/30 space-y-2"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="text-sm font-bold">
+                                                        {overlay.name}
+                                                    </h3>
+                                                    <button
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(
+                                                                overlay.url
+                                                            );
+                                                            showToast(
+                                                                `Copied ${overlay.name} URL to clipboard`,
+                                                                "success"
+                                                            );
+                                                        }}
+                                                        className="h-8 px-3 rounded-lg border border-border bg-secondary hover:bg-secondary/80 transition text-xs font-semibold flex items-center gap-2"
+                                                    >
+                                                        <HugeiconsIcon
+                                                            icon={Copy01Icon}
+                                                            size={14}
+                                                            strokeWidth={1.5}
+                                                        />
+                                                        Copy
+                                                    </button>
+                                                </div>
+                                                <div className="p-3 rounded bg-background border border-border">
+                                                    <code className="text-xs break-all text-muted-foreground">
+                                                        {overlay.url}
+                                                    </code>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground text-center py-4">
+                                            No overlay URLs available. Make sure
+                                            the backend is running.
                                         </p>
                                     )}
                                 </div>
