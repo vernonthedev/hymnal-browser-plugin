@@ -1,8 +1,6 @@
 # Hymnal BroadCast Console
 
-## Professional Hymn Broadcast Console & Overlay Server
-
-Hymnal BroadCast Console is a lightweight, all-in-one broadcast console designed for church media teams. It allows you to search, load, and control hymn lyrics with live previews, sending real-time updates to professional browser-based overlays for OBS, vMix, or any modern streaming software.
+Hymnal BroadCast Console is a lightweight, all-in-one broadcast console designed for SDA church media teams. It allows you to search, load, and control SDA hymn lyrics with live previews, sending real-time updates to professional browser-based overlays for OBS, vMix, or any modern streaming software.
 
 <img width="1230" height="794" alt="Application Screenshot" src="https://github.com/user-attachments/assets/56296449-293f-4e0c-b5f4-3a06a515b919" />
 
