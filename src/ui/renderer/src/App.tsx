@@ -1552,13 +1552,14 @@ export default function App() {
                                                 >
                                                     https://vernon.skope.au
                                                 </a>
+                                                <br />
                                                 <a
-                                                    href="https://github.com/vernonthedev/hymnal-browser-plugin"
+                                                    href="https://github.com/vernonthedev/hymnal-broadcast-console"
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-primary hover:underline"
                                                 >
-                                                    https://github.com/vernonthedev/hymnal-browser-plugin
+                                                    https://github.com/vernonthedev/hymnal-broadcast-console
                                                 </a>
                                             </div>
                                         </div>
