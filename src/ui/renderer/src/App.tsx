@@ -23,6 +23,7 @@ import {
     Sun01Icon,
     Moon01Icon,
     File01Icon,
+    Home01Icon,
 } from "@hugeicons/core-free-icons";
 
 /* ─── Types ─── */
@@ -95,6 +96,8 @@ export default function App() {
     const [currentView, setCurrentView] = useState<"main" | "settings">("main");
     const [theme, setTheme] = useState<"dark" | "light">("dark");
     const [showChangelog, setShowChangelog] = useState(false);
+    const [changelogContent, setChangelogContent] = useState<string>("");
+    const [changelogLoading, setChangelogLoading] = useState(false);
 
     const searchInputRef = useRef<HTMLInputElement>(null);
     const runtimeRef = useRef<Runtime | null>(null);
@@ -166,6 +169,25 @@ export default function App() {
             root.classList.remove("dark");
         }
     }, [theme]);
+
+    /* ─── Fetch Changelog from GitHub ─── */
+    const fetchChangelog = async () => {
+        if (changelogContent) return;
+        setChangelogLoading(true);
+        try {
+            const response = await fetch(
+                "https://raw.githubusercontent.com/vernonthedev/hymnal-browser-plugin/main/CHANGELOG.md"
+            );
+            if (response.ok) {
+                const content = await response.text();
+                setChangelogContent(content);
+            }
+        } catch (error) {
+            console.error("Failed to fetch changelog:", error);
+        } finally {
+            setChangelogLoading(false);
+        }
+    };
 
     /* ─── Init ─── */
     useEffect(() => {
@@ -362,6 +384,18 @@ export default function App() {
                 </div>
 
                 <nav className="flex-1 overflow-y-auto py-2 space-y-0.5">
+                    <SidebarButton
+                        icon={
+                            <HugeiconsIcon
+                                icon={Home01Icon}
+                                size={18}
+                                strokeWidth={1.5}
+                            />
+                        }
+                        label="Home"
+                        onClick={() => setCurrentView("main")}
+                        active={currentView === "main"}
+                    />
                     <SidebarButton
                         icon={
                             <HugeiconsIcon
@@ -1034,13 +1068,26 @@ export default function App() {
                         className={`flex-1 flex overflow-hidden ${compactMode ? "p-2 gap-2" : "p-4 gap-4"}`}
                     >
                         <section className="flex-1 flex flex-col gap-4 overflow-y-auto">
-                            <div className="space-y-0.5">
-                                <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
-                                    Settings
-                                </p>
-                                <h2 className="text-base font-bold">
-                                    Preferences
-                                </h2>
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
+                                        Settings
+                                    </p>
+                                    <h2 className="text-base font-bold">
+                                        Preferences
+                                    </h2>
+                                </div>
+                                <button
+                                    onClick={() => setCurrentView("main")}
+                                    className="h-9 px-4 rounded-lg border border-border bg-secondary hover:bg-secondary/80 transition text-xs font-semibold flex items-center gap-2"
+                                >
+                                    <HugeiconsIcon
+                                        icon={ArrowLeft01Icon}
+                                        size={14}
+                                        strokeWidth={1.5}
+                                    />
+                                    Back to Home
+                                </button>
                             </div>
 
                             {/* Theme Toggle */}
@@ -1111,7 +1158,10 @@ export default function App() {
                                         </div>
                                     </div>
                                     <button
-                                        onClick={() => setShowChangelog(true)}
+                                        onClick={() => {
+                                            setShowChangelog(true);
+                                            fetchChangelog();
+                                        }}
                                         className="h-9 px-4 rounded-lg border border-border bg-secondary hover:bg-secondary/80 transition text-xs font-semibold"
                                     >
                                         View
@@ -1229,78 +1279,52 @@ export default function App() {
                             </button>
                         </div>
                         <div className="flex-1 overflow-auto p-5">
-                            <div className="prose prose-sm dark:prose-invert max-w-none">
-                                <h3 className="text-lg font-bold mb-3">
-                                    Recent Changes
-                                </h3>
-                                <div className="space-y-4 text-sm">
-                                    <div className="p-3 rounded-lg border border-border bg-secondary/30">
-                                        <p className="font-semibold mb-1">
-                                            Version 2.0.3
-                                        </p>
-                                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                                            <li>
-                                                Resolve Jest coverage and
-                                                TypeScript errors
-                                            </li>
-                                            <li>Resolve PR review issues</li>
-                                            <li>Resolve test import errors</li>
-                                        </ul>
-                                    </div>
-                                    <div className="p-3 rounded-lg border border-border bg-secondary/30">
-                                        <p className="font-semibold mb-1">
-                                            Version 2.0.2
-                                        </p>
-                                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                                            <li>
-                                                Remove build:icons from CI
-                                                (icons already committed)
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div className="p-3 rounded-lg border border-border bg-secondary/30">
-                                        <p className="font-semibold mb-1">
-                                            Version 2.0.1
-                                        </p>
-                                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                                            <li>
-                                                Remove Python steps from CI
-                                                workflow
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div className="p-3 rounded-lg border border-border bg-secondary/30">
-                                        <p className="font-semibold mb-1">
-                                            Version 2.0.0
-                                        </p>
-                                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                                            <li>
-                                                Add missing token to control
-                                                client connection
-                                            </li>
-                                            <li>
-                                                Address PR review security
-                                                vulnerabilities and issues
-                                            </li>
-                                            <li>
-                                                Broadcast actual overlay state
-                                                instead of empty payload
-                                            </li>
-                                            <li>
-                                                Compile main.ts to CJS for
-                                                Electron
-                                            </li>
-                                            <li>
-                                                Resolve ESM __dirname issues in
-                                                build scripts
-                                            </li>
-                                            <li>
-                                                Migrate to TypeScript-only setup
-                                            </li>
-                                        </ul>
-                                    </div>
+                            {changelogLoading ? (
+                                <div className="flex items-center justify-center h-full">
+                                    <p className="text-sm text-muted-foreground">
+                                        Loading changelog...
+                                    </p>
                                 </div>
-                            </div>
+                            ) : changelogContent ? (
+                                <div className="prose prose-sm dark:prose-invert max-w-none">
+                                    <div
+                                        dangerouslySetInnerHTML={{
+                                            __html: changelogContent
+                                                .replace(
+                                                    /^##\s+(.+)$/gm,
+                                                    '<h3 class="text-lg font-bold mb-3 mt-4">$1</h3>'
+                                                )
+                                                .replace(
+                                                    /^###\s+(.+)$/gm,
+                                                    '<h4 class="text-base font-semibold mb-2 mt-3">$1</h4>'
+                                                )
+                                                .replace(
+                                                    /^\*\s+(.+)$/gm,
+                                                    '<li class="ml-4">$1</li>'
+                                                )
+                                                .replace(
+                                                    /\n\n/g,
+                                                    '</p><p class="mb-3">'
+                                                )
+                                                .replace(/\n/g, "<br />"),
+                                        }}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="text-center text-sm text-muted-foreground">
+                                    <p>Failed to load changelog.</p>
+                                    <p className="mt-2">
+                                        <a
+                                            href="https://github.com/vernonthedev/hymnal-browser-plugin/blob/main/CHANGELOG.md"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary hover:underline"
+                                        >
+                                            View on GitHub
+                                        </a>
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
