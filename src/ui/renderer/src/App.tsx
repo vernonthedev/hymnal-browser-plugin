@@ -1073,7 +1073,7 @@ export default function App() {
                                 </div>
                                 <button
                                     onClick={() => setCurrentView("main")}
-                                    className="h-9 px-4 rounded-lg border border-border bg-secondary hover:bg-secondary/80 transition text-xs font-semibold flex items-center gap-2"
+                                    className="h-9 px-4 rounded-full border border-border bg-secondary hover:bg-secondary/80 transition text-xs font-semibold flex items-center gap-2"
                                 >
                                     <HugeiconsIcon
                                         icon={ArrowLeft01Icon}
@@ -1148,7 +1148,7 @@ export default function App() {
                                 </div>
                                 <button
                                     onClick={() => setCurrentView("main")}
-                                    className="h-9 px-4 rounded-lg border border-border bg-secondary hover:bg-secondary/80 transition text-xs font-semibold flex items-center gap-2"
+                                    className="h-9 px-4 rounded-full border border-border bg-secondary hover:bg-secondary/80 transition text-xs font-semibold flex items-center gap-2"
                                 >
                                     <HugeiconsIcon
                                         icon={ArrowLeft01Icon}
