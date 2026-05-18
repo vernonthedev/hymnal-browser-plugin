@@ -8,8 +8,9 @@ const root = path.resolve(__dirname, "../../..");
 
 const requiredFiles = [
     {
-        path: path.join(root, "assets", "logo.png"),
-        message: "Missing source logo at assets/logo.png.",
+        path: path.join(root, "assets", "logo-colored.png"),
+        message:
+            "Missing source logo at assets/logo-colored.png. Run `bun run build:icons` first.",
     },
     {
         path: path.join(root, "assets", "icons", "app.ico"),
