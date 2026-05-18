@@ -1,3 +1,15 @@
+# [2.2.0](https://github.com/vernonthedev/hymnal-broadcast-console/compare/v2.1.1...v2.2.0) (2026-05-18)
+
+
+### Bug Fixes
+
+* **config:** update linux icon path in package.json ([18a8d81](https://github.com/vernonthedev/hymnal-broadcast-console/commit/18a8d810a64fff2d9a42b2347002e6f70f087070))
+
+
+### Features
+
+* **build:** automate package.json version sync from changelog ([693133b](https://github.com/vernonthedev/hymnal-broadcast-console/commit/693133b2fd8ea7771641c66691735e7c23941961))
+
 ## [2.1.1](https://github.com/vernonthedev/hymnal-broadcast-console/compare/v2.1.0...v2.1.1) (2026-05-18)
 
 
