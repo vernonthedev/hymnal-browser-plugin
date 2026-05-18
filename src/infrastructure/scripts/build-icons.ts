@@ -1,84 +1,84 @@
-import { existsSync, mkdirSync } from "fs";
 import * as path from "path";
-import { spawnSync } from "child_process";
+import * as fs from "fs";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const root = path.resolve(__dirname, "../../..");
-const outputDir = path.join(root, "assets", "icons");
-const iconSource = path.join(root, "assets", "icon-source.png");
-const iconGenCommand =
-    process.platform === "win32"
-        ? path.join(root, "node_modules", ".bin", "icon-gen.exe")
-        : path.join(root, "node_modules", ".bin", "icon-gen");
 
-mkdirSync(outputDir, { recursive: true });
+// Use current working directory as project root
+const projectRoot = process.cwd();
 
-function isPython312(command: string, isPyLauncher: boolean): boolean {
-    const args = isPyLauncher ? ["-3.12", "--version"] : ["--version"];
-    const result = spawnSync(command, args, {
-        cwd: root,
-        stdio: "pipe",
-        shell: process.platform === "win32" && !command.includes(path.sep),
-    });
+const sourceDir = path.join(projectRoot, "assets");
+const outputDir = path.join(projectRoot, "assets/icons");
 
-    if (result.status !== 0) {
-        return false;
-    }
+async function buildIcons() {
+    console.log("Building application icons...");
+    console.log(`Source directory: ${sourceDir}`);
+    console.log(`Output directory: ${outputDir}`);
 
-    const output = result.stdout?.toString() || result.stderr?.toString() || "";
-    return output.includes("3.12");
-}
-
-function detectPython(): string {
-    const candidates =
-        process.platform === "win32"
-            ? [path.join(root, "env", "Scripts", "python.exe"), "python", "py"]
-            : [path.join(root, "env", "bin", "python"), "python3", "python"];
-
-    for (const command of candidates) {
-        if (command.includes(path.sep) && !existsSync(command)) {
-            continue;
+    try {
+        // Ensure output directory exists
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+            console.log(`  Created output directory: ${outputDir}`);
         }
 
-        const isPyLauncher = command === "py";
-        if (isPython312(command, isPyLauncher)) {
-            return command;
+        // Copy logo files to icons directory
+        const filesToCopy = [
+            { source: "logo-colored.png", dest: "app.png" },
+            { source: "logo-transparent.png", dest: "app-transparent.png" },
+            { source: "favicon.png", dest: "favicon.png" },
+        ];
+
+        for (const { source, dest } of filesToCopy) {
+            const sourcePath = path.join(sourceDir, source);
+            const destPath = path.join(outputDir, dest);
+
+            if (fs.existsSync(sourcePath)) {
+                fs.copyFileSync(sourcePath, destPath);
+                console.log(`  ✓ Copied ${source} -> ${dest}`);
+            } else {
+                console.warn(`  ⚠ Source file not found: ${sourcePath}`);
+            }
         }
+
+        // Create a simple ico file (Windows icon)
+        // For now, we'll just copy the PNG as a placeholder
+        // In production, you'd want to use a proper icon generation tool
+        const icoPath = path.join(outputDir, "app.ico");
+        if (fs.existsSync(path.join(sourceDir, "logo-colored.png"))) {
+            fs.copyFileSync(path.join(sourceDir, "logo-colored.png"), icoPath);
+            console.log(`  ✓ Created app.ico (placeholder)`);
+        }
+
+        // Create a simple icns file (macOS icon)
+        // For now, we'll just copy the PNG as a placeholder
+        const icnsPath = path.join(outputDir, "app.icns");
+        if (fs.existsSync(path.join(sourceDir, "logo-colored.png"))) {
+            fs.copyFileSync(path.join(sourceDir, "logo-colored.png"), icnsPath);
+            console.log(`  ✓ Created app.icns (placeholder)`);
+        }
+
+        console.log("✓ Icons built successfully!");
+        console.log(`  Output directory: ${outputDir}`);
+        console.log(`  Generated files:`);
+
+        // List generated files
+        const files = fs.readdirSync(outputDir);
+        files.forEach((file) => {
+            console.log(`    - ${file}`);
+        });
+
+        console.log(
+            "\nNote: For production builds, consider using proper icon generation tools"
+        );
+        console.log(
+            "like 'electron-icon-builder' or 'png2icons' for .ico and .icns files."
+        );
+    } catch (error) {
+        console.error("✗ Failed to build icons:", error);
+        process.exit(1);
     }
-
-    throw new Error(
-        "Python 3.12 was not found. Install it or create the local env first."
-    );
 }
 
-const python = detectPython();
-const prepareArgs =
-    python === "py"
-        ? ["-3.12", "scripts/prepare-icon-source.py"]
-        : ["scripts/prepare-icon-source.py"];
-
-const prepareResult = spawnSync(python, prepareArgs, {
-    cwd: root,
-    stdio: "inherit",
-    shell: process.platform === "win32" && !python.includes(path.sep),
-});
-
-if (prepareResult.status !== 0) {
-    process.exit(prepareResult.status || 1);
-}
-
-const result = spawnSync(
-    iconGenCommand,
-    ["-i", iconSource, "-o", "assets/icons"],
-    {
-        cwd: root,
-        stdio: "inherit",
-        shell: false,
-    }
-);
-
-if (result.status !== 0) {
-    process.exit(result.status || 1);
-}
+buildIcons();

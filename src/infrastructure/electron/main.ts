@@ -123,7 +123,7 @@ async function getLatestReleaseInfo(): Promise<{
 }
 
 function getAppDataRoot(): string {
-    return path.join(app.getPath("appData"), "SDA Hymnal Desktop");
+    return path.join(app.getPath("appData"), "Hymnal BroadCast Console");
 }
 
 async function ensureDirectory(dirPath: string): Promise<void> {
@@ -300,14 +300,15 @@ function createWindow(): void {
     mainWindow = new BrowserWindow({
         width: 1180,
         height: 760,
-        minWidth: 1180,
-        minHeight: 760,
-        resizable: false,
-        maximizable: false,
+        minWidth: 800,
+        minHeight: 600,
+        resizable: true,
+        maximizable: true,
         fullscreenable: false,
         frame: false,
         titleBarStyle: "hidden",
         backgroundColor: "#0a0c10",
+        icon: path.join(app.getAppPath(), "assets/icons/app.png"),
         webPreferences: {
             preload: path.join(
                 app.getAppPath(),
@@ -329,9 +330,19 @@ function createWindow(): void {
 
     mainWindow.webContents.on("dom-ready", () => {});
 
-    mainWindow.loadFile(
-        path.join(app.getAppPath(), "src/ui/renderer/index.html")
+    // Load the Vite-built renderer output
+    // In development, we need to build the renderer first or use the dev server
+    const distIndex = path.join(
+        app.getAppPath(),
+        "src/ui/renderer/dist/index.html"
     );
+    if (fs.existsSync(distIndex)) {
+        mainWindow.loadFile(distIndex);
+    } else {
+        mainWindow.loadFile(
+            path.join(app.getAppPath(), "src/ui/renderer/index.html")
+        );
+    }
 }
 
 // Disable GPU acceleration to prevent crashes in headless environments
@@ -368,9 +379,32 @@ app.whenReady().then(async () => {
         }
         return true;
     });
+    ipcMain.handle("window:maximize", async () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.maximize();
+        }
+        return true;
+    });
+    ipcMain.handle("window:toggleMaximize", async () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            if (mainWindow.isMaximized()) {
+                mainWindow.unmaximize();
+            } else {
+                mainWindow.maximize();
+            }
+        }
+        return true;
+    });
     ipcMain.handle("window:close", async () => {
         if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.close();
+        }
+        return true;
+    });
+    ipcMain.handle("window:move", async (_event, dx: number, dy: number) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            const [x, y] = mainWindow.getPosition();
+            mainWindow.setPosition(x + dx, y + dy);
         }
         return true;
     });

@@ -1,10 +1,8 @@
-# SDA Hymnal Desktop
+# Hymnal BroadCast Console
 
-## Professional Hymn Broadcast Console & Overlay Server
+Hymnal BroadCast Console is a lightweight, all-in-one broadcast console designed for SDA church media teams. It allows you to search, load, and control SDA hymn lyrics with live previews, sending real-time updates to professional browser-based overlays for OBS, vMix, or any modern streaming software.
 
-SDA Hymnal Desktop is a lightweight, all-in-one broadcast console designed for church media teams. It allows you to search, load, and control hymn lyrics with live previews, sending real-time updates to professional browser-based overlays for OBS, vMix, or any modern streaming software.
-
-<img width="1230" height="794" alt="Application Screenshot" src="https://github.com/user-attachments/assets/56296449-293f-4e0c-b5f4-3a06a515b919" />
+<img width="1230" height="794" alt="Application Screenshot" src="/assets/images/home.png" />
 
 ## Key Features
 
@@ -17,12 +15,13 @@ SDA Hymnal Desktop is a lightweight, all-in-one broadcast console designed for c
 > [!IMPORTANT]
 > By default, this application uses ports 9999 (HTTP) and 8765 (WebSocket). The internal server starts automatically upon launch and will fall back to alternate open ports if the defaults are unavailable. Use the **URLs** button in the app header to retrieve the active links for your broadcast software.
 
+<img width="1230" height="794" alt="Application Screenshot" src="/assets/images/search.png" />
+
 ## Getting Started
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) (preferred) or [Node.js](https://nodejs.org/)
-- [Python 3.12+](https://www.python.org/) (required only for building app icons)
+- [Bun](https://bun.sh/)
 
 ### Installation & Development
 
@@ -33,11 +32,13 @@ bun dev
 
 ## Broadcast Integration
 
-1.  Launch SDA Hymnal Desktop.
+1.  Launch Hymnal BroadCast Console.
 2.  Click the **URLs** button in the top right.
 3.  Copy the URL for your desired overlay (e.g., Lower Third).
 4.  In OBS or vMix, add a new **Browser Source**.
 5.  Paste the URL and set the size to **1920x1080**.
+
+<img width="1230" height="794" alt="Application Screenshot" src="/assets/images/urls.png" />
 
 ## Development & Packaging
 
@@ -59,7 +60,7 @@ bun run dist:mac    # macOS (.dmg)
 bun run dist:linux  # Linux (.AppImage, .deb)
 ```
 
-## Automated Releases
+### Automated Releases
 
 Pushes to the main branch trigger an automated CI workflow that:
 
@@ -73,4 +74,4 @@ Pushes to the main branch trigger an automated CI workflow that:
 > Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 > Please check out the [Contributing Guide](CONTRIBUTING.md) to get started.
 
-Made with love 💖 by @[vernonthedev](https://github.com/vernonthedev)
+Made with love 💖 by @[vernonthedev](https://vernon.skope.au)

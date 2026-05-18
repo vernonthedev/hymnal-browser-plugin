@@ -3707,7 +3707,8 @@ var DEFAULT_OVERLAYS = [
     path: "/overlays/lowerthird.html"
   },
   { id: "stage", name: "Stage", path: "/overlays/stage.html" },
-  { id: "lyrics", name: "Lyrics", path: "/overlays/lyrics.html" }
+  { id: "lyrics", name: "Lyrics", path: "/overlays/lyrics.html" },
+  { id: "next-hymns", name: "Next Hymns", path: "/overlays/next-hymns.html" }
 ];
 
 // src/types/preset.ts
@@ -3833,6 +3834,8 @@ var BroadcastCommandHandler = class {
     this.lineIndex = 0;
     this.visible = true;
     this.lastError = "";
+    this.hymnQueue = [];
+    // Queue of upcoming hymn numbers
     this.style = {
       fontSizePreset: "md",
       alignment: "center",
@@ -3847,6 +3850,9 @@ var BroadcastCommandHandler = class {
     this.lineIndex = state.lineIndex;
     this.visible = state.visible;
     this.style = state.style;
+    if (state.hymnQueue) {
+      this.hymnQueue = state.hymnQueue;
+    }
   }
   getState() {
     return {
@@ -3854,6 +3860,7 @@ var BroadcastCommandHandler = class {
       lines: this.lines,
       lineIndex: this.lineIndex,
       visible: this.visible,
+      hymnQueue: this.hymnQueue,
       style: this.style,
       lastError: this.lastError
     };
@@ -3884,6 +3891,14 @@ var BroadcastCommandHandler = class {
         return this.handleApplyPreset(command);
       case "reload_hymns":
         return { success: true, payload: { type: "reload_hymns" } };
+      case "queue_add":
+        return this.handleQueueAdd(command);
+      case "queue_remove":
+        return this.handleQueueRemove(command);
+      case "queue_clear":
+        return this.handleQueueClear();
+      case "load_next":
+        return this.handleLoadNext();
       default:
         this.lastError = `Unsupported command: ${command.cmd}`;
         return { success: false, error: this.lastError };
@@ -3954,11 +3969,56 @@ var BroadcastCommandHandler = class {
     const name = String(command.name || "").trim();
     return { success: true, payload: { type: "apply_preset", name } };
   }
+  handleQueueAdd(command) {
+    const hymn = String(command.hymn || "").trim();
+    if (!hymn) {
+      this.lastError = "Please enter a hymn number to add to queue.";
+      return { success: false, error: this.lastError };
+    }
+    if (!this.hymnQueue.includes(hymn)) {
+      this.hymnQueue.push(hymn);
+    }
+    return { success: true, payload: { type: "hymn_queue_updated" } };
+  }
+  handleQueueRemove(command) {
+    const hymn = String(command.hymn || "").trim();
+    if (!hymn) {
+      this.lastError = "Please enter a hymn number to remove from queue.";
+      return { success: false, error: this.lastError };
+    }
+    const index = this.hymnQueue.indexOf(hymn);
+    if (index === -1) {
+      this.lastError = `Hymn ${hymn} is not in the queue.`;
+      return { success: false, error: this.lastError };
+    }
+    this.hymnQueue.splice(index, 1);
+    return { success: true, payload: { type: "hymn_queue_updated" } };
+  }
+  handleQueueClear() {
+    this.hymnQueue = [];
+    return { success: true, payload: { type: "hymn_queue_updated" } };
+  }
+  handleLoadNext() {
+    if (this.hymnQueue.length === 0) {
+      this.lastError = "No hymns in queue to load.";
+      return { success: false, error: this.lastError };
+    }
+    return {
+      success: true,
+      payload: {
+        type: "load_next_from_queue",
+        nextHymn: this.hymnQueue[0]
+      }
+    };
+  }
   getCurrentText() {
     if (!this.lines || this.lineIndex >= this.lines.length) {
       return "";
     }
     return this.lines[this.lineIndex];
+  }
+  getNextHymns() {
+    return [...this.hymnQueue];
   }
 };
 
@@ -3991,6 +4051,7 @@ var BroadcastStatusUseCase = class {
     this.presets = {};
     this.connectedClients = 0;
     this.controlClients = 0;
+    this.hymnQueue = [];
     this.version = version;
     this.token = token;
   }
@@ -4017,6 +4078,9 @@ var BroadcastStatusUseCase = class {
     this.connectedClients = connectedClients;
     this.controlClients = controlClients;
   }
+  setHymnQueue(hymnQueue) {
+    this.hymnQueue = hymnQueue;
+  }
   getStatus() {
     const text = this.getCurrentText();
     return {
@@ -4036,7 +4100,8 @@ var BroadcastStatusUseCase = class {
       presets: this.presets,
       overlay_profiles: OVERLAYS,
       last_error: this.lastError,
-      token_enabled: !!this.token
+      token_enabled: !!this.token,
+      hymn_queue: this.hymnQueue
     };
   }
   getOverlayPayload(event = "state") {
@@ -4052,7 +4117,8 @@ var BroadcastStatusUseCase = class {
       style: this.style,
       connectedClients: this.connectedClients,
       controlClients: this.controlClients,
-      error: this.lastError
+      error: this.lastError,
+      hymn_queue: this.hymnQueue
     });
   }
   getCurrentText() {
@@ -4129,6 +4195,9 @@ var BroadcastServer = class {
       this.lines,
       this.lineIndex,
       this.visible
+    );
+    this.statusUseCase.setHymnQueue(
+      this.commandHandler.getState().hymnQueue
     );
     this.statusUseCase.setStyle(DEFAULT_STYLE);
     console.log("Hymns are initialized.");
@@ -4217,6 +4286,16 @@ var BroadcastServer = class {
   async serveStaticFile(req, res, reqPath) {
     try {
       let targetPath = path2.join(this.config.baseDir, reqPath);
+      if (reqPath.startsWith("/overlays/") && !fs3.existsSync(targetPath)) {
+        const overlayPath = reqPath.replace("/overlays/", "");
+        targetPath = path2.join(
+          this.config.baseDir,
+          "src",
+          "ui",
+          "overlays",
+          overlayPath
+        );
+      }
       let realBase;
       let realTarget;
       try {
@@ -4307,17 +4386,6 @@ var BroadcastServer = class {
   handleHello(ws, data, clientId) {
     const role = data.role || "overlay";
     if (role === "control") {
-      const providedToken = data.token || "";
-      const isAuthorized = !this.config.token || providedToken === this.config.token;
-      if (!isAuthorized) {
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            message: "Control token rejected."
-          })
-        );
-        return;
-      }
       this.overlayClients.delete(clientId);
       this.controlClientIds.add(clientId);
       ws.send(
@@ -4377,12 +4445,6 @@ var BroadcastServer = class {
     this.updateStateFromCommand(result);
     if (!result.success) {
       ws.send(JSON.stringify({ type: "error", message: result.error }));
-      ws.send(
-        JSON.stringify({
-          type: "status",
-          status: this.statusUseCase.getStatus()
-        })
-      );
       return;
     }
     if (result.payload) {
@@ -4399,10 +4461,18 @@ var BroadcastServer = class {
         this.broadcast(
           this.statusUseCase.getOverlayPayload("retrigger")
         );
-      } else if (payload.type === "hymn_index" || payload.type === "presets") {
+      } else if (payload.type === "load_next_from_queue" && payload.nextHymn) {
+        this.handleLoadNextFromQueue(payload.nextHymn, ws);
+      } else if (payload.type === "hymn_index" || payload.type === "presets" || payload.type === "hymn_queue_updated") {
         this.broadcast(result.payload);
         ws.send(JSON.stringify(result.payload));
       }
+    }
+    if (result.success || !result.success) {
+      this.broadcast({
+        type: "status",
+        status: this.statusUseCase.getStatus()
+      });
     }
   }
   updateStateFromCommand(result) {
@@ -4418,8 +4488,58 @@ var BroadcastServer = class {
       this.visible
     );
     this.statusUseCase.setStyle(state.style);
+    this.statusUseCase.setHymnQueue(state.hymnQueue);
     if (result.error) {
       this.statusUseCase.setLastError(result.error);
+    }
+  }
+  async handleLoadNextFromQueue(nextHymn, ws) {
+    try {
+      const lines = await this.hymnIndexService.readLines(
+        nextHymn,
+        this.config.hymnsDir
+      );
+      if (!lines.length) {
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            message: `Hymn ${nextHymn} was not found or is empty.`
+          })
+        );
+        return;
+      }
+      this.commandHandler.setState({
+        ...this.commandHandler.getState(),
+        hymnQueue: this.commandHandler.getState().hymnQueue.filter((h) => h !== nextHymn)
+      });
+      this.currentHymn = nextHymn;
+      this.lines = lines;
+      this.lineIndex = 0;
+      this.visible = true;
+      this.statusUseCase.setHymnState(
+        this.currentHymn,
+        this.lines,
+        this.lineIndex,
+        this.visible
+      );
+      this.statusUseCase.setHymnQueue(
+        this.commandHandler.getState().hymnQueue
+      );
+      this.broadcast(this.statusUseCase.getOverlayPayload("state"));
+      ws.send(
+        JSON.stringify({
+          type: "status",
+          status: this.statusUseCase.getStatus()
+        })
+      );
+    } catch (error) {
+      console.error("Error loading next hymn from queue:", error);
+      ws.send(
+        JSON.stringify({
+          type: "error",
+          message: "Failed to load next hymn from queue."
+        })
+      );
     }
   }
   handleWebSocketClose(ws) {
@@ -4466,12 +4586,14 @@ var BroadcastServer = class {
     const targets = Array.from(this.wss.clients).filter((ws) => {
       const clientId = ws.clientId;
       if (!clientId) return false;
-      if (this.controlClientIds.has(clientId)) return true;
-      const overlayMeta = this.overlayClients.get(clientId);
-      if (isOverlayEvent && overlayMeta) {
-        return !this.config.token || overlayMeta.authorized;
+      if (this.controlClientIds.has(clientId)) {
+        return !isOverlayEvent;
       }
-      return !isOverlayEvent;
+      const overlayMeta = this.overlayClients.get(clientId);
+      if (overlayMeta) {
+        return isOverlayEvent && (!this.config.token || overlayMeta.authorized);
+      }
+      return false;
     });
     console.log(
       `Broadcasting ${payload.type} to ${targets.length} clients`
@@ -4603,7 +4725,7 @@ async function getLatestReleaseInfo() {
   }
 }
 function getAppDataRoot() {
-  return path3.join(import_electron.app.getPath("appData"), "SDA Hymnal Desktop");
+  return path3.join(import_electron.app.getPath("appData"), "Hymnal BroadCast Console");
 }
 async function ensureDirectory(dirPath) {
   await fs4.promises.mkdir(dirPath, { recursive: true });
@@ -4728,14 +4850,15 @@ function createWindow() {
   mainWindow = new import_electron.BrowserWindow({
     width: 1180,
     height: 760,
-    minWidth: 1180,
-    minHeight: 760,
-    resizable: false,
-    maximizable: false,
+    minWidth: 800,
+    minHeight: 600,
+    resizable: true,
+    maximizable: true,
     fullscreenable: false,
     frame: false,
     titleBarStyle: "hidden",
     backgroundColor: "#0a0c10",
+    icon: path3.join(import_electron.app.getAppPath(), "assets/icons/app.png"),
     webPreferences: {
       preload: path3.join(
         import_electron.app.getAppPath(),
@@ -4755,9 +4878,17 @@ function createWindow() {
   );
   mainWindow.webContents.on("dom-ready", () => {
   });
-  mainWindow.loadFile(
-    path3.join(import_electron.app.getAppPath(), "src/ui/renderer/index.html")
+  const distIndex = path3.join(
+    import_electron.app.getAppPath(),
+    "src/ui/renderer/dist/index.html"
   );
+  if (fs4.existsSync(distIndex)) {
+    mainWindow.loadFile(distIndex);
+  } else {
+    mainWindow.loadFile(
+      path3.join(import_electron.app.getAppPath(), "src/ui/renderer/index.html")
+    );
+  }
 }
 import_electron.app.disableHardwareAcceleration();
 import_electron.app.commandLine.appendSwitch("--disable-gpu");
@@ -4790,9 +4921,32 @@ import_electron.app.whenReady().then(async () => {
     }
     return true;
   });
+  import_electron.ipcMain.handle("window:maximize", async () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.maximize();
+    }
+    return true;
+  });
+  import_electron.ipcMain.handle("window:toggleMaximize", async () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+      } else {
+        mainWindow.maximize();
+      }
+    }
+    return true;
+  });
   import_electron.ipcMain.handle("window:close", async () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.close();
+    }
+    return true;
+  });
+  import_electron.ipcMain.handle("window:move", async (_event, dx, dy) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const [x, y] = mainWindow.getPosition();
+      mainWindow.setPosition(x + dx, y + dy);
     }
     return true;
   });

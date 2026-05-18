@@ -1,7 +1,7 @@
 {
     "name": "sda-hymnal-desktop",
     "version": "2.0.0",
-    "description": "Electron desktop controller for the SDA Hymnal lower thirds backend",
+    "description": "Hymnal BroadCast Console is a local broadcast console for loading SDA hymn lyrics and sending live overlay updates to browser-based outputs",
     "type": "module",
     "main": "src/infrastructure/electron/main.cjs",
     "author": {
@@ -21,15 +21,17 @@
         "verify:build-assets": "tsx src/infrastructure/scripts/verify-build-assets.ts",
         "prepare:dist": "tsx src/infrastructure/scripts/prepare-dist.ts",
         "build:icons": "tsx src/infrastructure/scripts/build-icons.ts",
-        "dist": "npm run prepare:dist && npm run verify:build-assets && electron-builder --publish never",
-        "dist:dir": "npm run prepare:dist && npm run verify:build-assets && electron-builder --dir --publish never",
-        "dist:win": "npm run prepare:dist && npm run verify:build-assets && electron-builder --win nsis portable --publish never",
-        "dist:mac": "npm run prepare:dist && npm run verify:build-assets && electron-builder --mac dmg --publish never",
-        "dist:linux": "npm run prepare:dist && npm run verify:build-assets && electron-builder --linux AppImage deb --publish never"
+        "dist": "bun run prepare:dist && bun run verify:build-assets && electron-builder --publish never",
+        "dist:dir": "bun run prepare:dist && bun run verify:build-assets && electron-builder --dir --publish never",
+        "dist:win": "bun run prepare:dist && bun run verify:build-assets && electron-builder --win nsis portable --publish never",
+        "dist:mac": "bun run prepare:dist && bun run verify:build-assets && electron-builder --mac dmg --publish never",
+        "dist:linux": "bun run prepare:dist && bun run verify:build-assets && electron-builder --linux AppImage deb --publish never",
+        "contributors:add": "all-contributors add",
+        "contributors:generate": "all-contributors generate"
     },
     "build": {
-        "appId": "com.sda.hymnal.desktop",
-        "productName": "SDA Hymnal Desktop",
+        "appId": "com.sda.hymnal.broadcast.console",
+        "productName": "Hymnal Broadcast Console",
         "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
         "icon": "assets/icons",
         "files": [
@@ -53,7 +55,11 @@
                 "to": "assets",
                 "filter": [
                     "overlay.css",
-                    "overlay-client.js"
+                    "overlay-client.js",
+                    "logo-transparent.png",
+                    "logo-colored.png",
+                    "favicon.png",
+                    "icons/**/*"
                 ]
             },
             {
@@ -102,14 +108,23 @@
         }
     },
     "dependencies": {
+        "@hugeicons/core-free-icons": "^4.1.1",
+        "@hugeicons/react": "^1.1.6",
+        "react": "^19.2.5",
+        "react-dom": "^19.2.5",
+        "react-markdown": "^10.1.0",
         "ws": "^8.18.0"
     },
     "devDependencies": {
         "@commitlint/cli": "^20.5.3",
         "@commitlint/config-conventional": "^20.5.3",
+        "@tailwindcss/postcss": "^4.2.4",
+        "@types/bun": "latest",
         "@types/jest": "^30.0.0",
         "@types/node": "^25.6.0",
         "@types/ws": "^8.18.1",
+        "@vitejs/plugin-react": "^6.0.1",
+        "all-contributors-cli": "^6.26.1",
         "commitizen": "^4.3.1",
         "cz-conventional-changelog": "^3.3.0",
         "electron": "^36.2.1",
@@ -123,15 +138,26 @@
         "jest": "^30.3.0",
         "jest-environment-jsdom": "^30.3.0",
         "lefthook": "^2.1.6",
+        "postcss": "^8.5.14",
         "prettier": "^3.8.3",
+        "tailwindcss": "^4.2.4",
         "ts-jest": "^29.4.9",
         "tsx": "^4.21.0",
         "typescript": "^6.0.3",
-        "typescript-eslint": "^8.59.1"
+        "typescript-eslint": "^8.59.1",
+        "vite": "^8.0.10"
     },
     "config": {
         "commitizen": {
             "path": "./node_modules/cz-conventional-changelog"
         }
-    }
+    },
+    "contributors": [
+        {
+            "name": "vernonthedev",
+            "email": "techjaja2@gmail.com",
+            "url": "https://vernon.skope.au"
+        }
+    ],
+    "private": true
 }

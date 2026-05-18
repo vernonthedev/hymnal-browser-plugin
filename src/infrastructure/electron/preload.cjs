@@ -11,7 +11,10 @@ import_electron.contextBridge.exposeInMainWorld("desktopApi", {
   getVersion: () => import_electron.ipcRenderer.invoke("app:getVersion"),
   getReleaseInfo: () => import_electron.ipcRenderer.invoke("app:getReleaseInfo"),
   minimizeWindow: () => import_electron.ipcRenderer.invoke("window:minimize"),
+  maximizeWindow: () => import_electron.ipcRenderer.invoke("window:maximize"),
+  toggleMaximizeWindow: () => import_electron.ipcRenderer.invoke("window:toggleMaximize"),
   closeWindow: () => import_electron.ipcRenderer.invoke("window:close"),
+  moveWindow: (dx, dy) => import_electron.ipcRenderer.invoke("window:move", dx, dy),
   onBackendEvent: (callback) => {
     const listener = (_event, payload) => callback(payload);
     import_electron.ipcRenderer.on("backend-event", listener);

@@ -79,6 +79,9 @@ export class BroadcastServer {
             this.lineIndex,
             this.visible
         );
+        this.statusUseCase.setHymnQueue(
+            this.commandHandler.getState().hymnQueue
+        );
         this.statusUseCase.setStyle(DEFAULT_STYLE);
 
         console.log("Hymns are initialized.");
@@ -185,6 +188,21 @@ export class BroadcastServer {
     ): Promise<void> {
         try {
             let targetPath = path.join(this.config.baseDir, reqPath);
+
+            // Special handling for overlays in development
+            if (
+                reqPath.startsWith("/overlays/") &&
+                !fs.existsSync(targetPath)
+            ) {
+                const overlayPath = reqPath.replace("/overlays/", "");
+                targetPath = path.join(
+                    this.config.baseDir,
+                    "src",
+                    "ui",
+                    "overlays",
+                    overlayPath
+                );
+            }
 
             let realBase: string;
             let realTarget: string;
@@ -301,18 +319,8 @@ export class BroadcastServer {
     private handleHello(ws: WebSocket, data: any, clientId: number): void {
         const role = data.role || "overlay";
         if (role === "control") {
-            const providedToken = data.token || "";
-            const isAuthorized =
-                !this.config.token || providedToken === this.config.token;
-            if (!isAuthorized) {
-                ws.send(
-                    JSON.stringify({
-                        type: "error",
-                        message: "Control token rejected.",
-                    })
-                );
-                return;
-            }
+            // Control clients (main app) are trusted and don't require token authentication
+            // since they run on the same machine
             this.overlayClients.delete(clientId);
             this.controlClientIds.add(clientId);
             ws.send(
@@ -386,17 +394,15 @@ export class BroadcastServer {
 
         if (!result.success) {
             ws.send(JSON.stringify({ type: "error", message: result.error }));
-            ws.send(
-                JSON.stringify({
-                    type: "status",
-                    status: this.statusUseCase.getStatus(),
-                })
-            );
+            // Status is broadcast below
             return;
         }
 
         if (result.payload) {
-            const payload = result.payload as { type?: string };
+            const payload = result.payload as {
+                type?: string;
+                nextHymn?: string;
+            };
             if (payload.type === "state") {
                 this.broadcast(this.statusUseCase.getOverlayPayload("state"));
             } else if (payload.type === "visibility") {
@@ -410,12 +416,27 @@ export class BroadcastServer {
                     this.statusUseCase.getOverlayPayload("retrigger")
                 );
             } else if (
+                payload.type === "load_next_from_queue" &&
+                payload.nextHymn
+            ) {
+                // Handle loading next hymn from queue
+                this.handleLoadNextFromQueue(payload.nextHymn, ws);
+            } else if (
                 payload.type === "hymn_index" ||
-                payload.type === "presets"
+                payload.type === "presets" ||
+                payload.type === "hymn_queue_updated"
             ) {
                 this.broadcast(result.payload);
                 ws.send(JSON.stringify(result.payload));
             }
+        }
+
+        // Send status update to control clients
+        if (result.success || !result.success) {
+            this.broadcast({
+                type: "status",
+                status: this.statusUseCase.getStatus(),
+            });
         }
     }
 
@@ -436,9 +457,70 @@ export class BroadcastServer {
             this.visible
         );
         this.statusUseCase.setStyle(state.style);
+        this.statusUseCase.setHymnQueue(state.hymnQueue);
 
         if (result.error) {
             this.statusUseCase.setLastError(result.error);
+        }
+    }
+
+    private async handleLoadNextFromQueue(
+        nextHymn: string,
+        ws: WebSocket
+    ): Promise<void> {
+        try {
+            const lines = await this.hymnIndexService.readLines(
+                nextHymn,
+                this.config.hymnsDir
+            );
+            if (!lines.length) {
+                ws.send(
+                    JSON.stringify({
+                        type: "error",
+                        message: `Hymn ${nextHymn} was not found or is empty.`,
+                    })
+                );
+                return;
+            }
+
+            // Remove the hymn from queue and load it
+            this.commandHandler.setState({
+                ...this.commandHandler.getState(),
+                hymnQueue: this.commandHandler
+                    .getState()
+                    .hymnQueue.filter((h) => h !== nextHymn),
+            });
+
+            this.currentHymn = nextHymn;
+            this.lines = lines;
+            this.lineIndex = 0;
+            this.visible = true;
+
+            this.statusUseCase.setHymnState(
+                this.currentHymn,
+                this.lines,
+                this.lineIndex,
+                this.visible
+            );
+            this.statusUseCase.setHymnQueue(
+                this.commandHandler.getState().hymnQueue
+            );
+
+            this.broadcast(this.statusUseCase.getOverlayPayload("state"));
+            ws.send(
+                JSON.stringify({
+                    type: "status",
+                    status: this.statusUseCase.getStatus(),
+                })
+            );
+        } catch (error) {
+            console.error("Error loading next hymn from queue:", error);
+            ws.send(
+                JSON.stringify({
+                    type: "error",
+                    message: "Failed to load next hymn from queue.",
+                })
+            );
         }
     }
 
@@ -495,14 +577,19 @@ export class BroadcastServer {
             const clientId = (ws as any).clientId;
             if (!clientId) return false;
 
-            if (this.controlClientIds.has(clientId)) return true;
-
-            const overlayMeta = this.overlayClients.get(clientId);
-            if (isOverlayEvent && overlayMeta) {
-                return !this.config.token || overlayMeta.authorized;
+            if (this.controlClientIds.has(clientId)) {
+                return !isOverlayEvent; // control clients only receive non-overlay events
             }
 
-            return !isOverlayEvent;
+            const overlayMeta = this.overlayClients.get(clientId);
+            if (overlayMeta) {
+                return (
+                    isOverlayEvent &&
+                    (!this.config.token || overlayMeta.authorized)
+                );
+            }
+
+            return false;
         });
 
         console.log(

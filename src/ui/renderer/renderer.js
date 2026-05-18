@@ -80,6 +80,19 @@
             presetName: document.getElementById("preset-name-input"),
             applyPresetBtn: document.getElementById("apply-preset-btn"),
             savePresetBtn: document.getElementById("save-preset-btn"),
+            // queueHymnInput: document.getElementById(
+            //     "queue-hymn-input"
+            // ) as HTMLInputElement,
+            // queueAddBtn: document.getElementById("queue-add-btn") as HTMLButtonElement,
+            // queueClearBtn: document.getElementById(
+            //     "queue-clear-btn"
+            // ) as HTMLButtonElement,
+            // loadNextBtn: document.getElementById(
+            //     "load-next-btn"
+            // ) as HTMLButtonElement,
+            // hymnQueueList: document.getElementById(
+            //     "hymn-queue-list"
+            // ) as HTMLElement,
         };
     }
     function renderLogs() {
@@ -182,7 +195,7 @@
         const releaseSummary = state.releaseInfo?.summary || [];
         return `
     <div class="modal-copy">
-      <p>SDA Hymnal Desktop is a local broadcast console for loading hymn lyrics and sending live overlay updates to browser-based outputs.</p>
+      <p>Hymnal BroadCast Console is a local broadcast console for loading hymn lyrics and sending live overlay updates to browser-based outputs.</p>
       <div class="modal-list">
         <article class="modal-card">
           <div class="modal-card-header"><strong>Developer</strong><span>vernonthedev</span></div>
@@ -441,7 +454,12 @@
             : "Blank";
         elements.currentLinePreview.textContent = status.text || "(No text)";
         elements.prevLinePreview.textContent = status.previous_text || "-";
-        elements.nextLinePreview.textContent = status.next_text || "-";
+        const nextHymn = status.hymn_queue?.[0];
+        if (nextHymn) {
+            elements.nextLinePreview.textContent = `Next: Hymn ${nextHymn}`;
+        } else {
+            elements.nextLinePreview.textContent = status.next_text || "-";
+        }
         syncStyleForm(status.style || {});
         if (status.presets) {
             state.presets = status.presets;
